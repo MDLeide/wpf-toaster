@@ -9,21 +9,30 @@ namespace Cashew.Toasty.Sample
     /// <summary>
     /// Interaction logic for SystemConfiguration.xaml
     /// </summary>
-    public partial class SystemConfiguration : UserControl
+    public partial class ToasterSettingsView : UserControl
     {
-        public SystemConfiguration(ToasterSettings settings)
+        public ToasterSettingsView()
+            : this(Defaults.DefaultSettings.DefaultToasterSettings) { }
+
+        public ToasterSettingsView(ToasterSettings settings)
         {
             InitializeComponent();
 
             foreach (var dir in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+            {
                 FromDirection.Items.Add(dir);
+                LeaveDirection.Items.Add(dir);
+            }
 
             foreach (var loc in Enum.GetValues(typeof(Location)).Cast<Location>())
                 ToastLocation.Items.Add(loc);
 
-            Settings = settings;
+            foreach (var style in Enum.GetValues(typeof(LeaveStyle)).Cast<LeaveStyle>())
+                LeaveStyle.Items.Add(style);
 
-            InitValues();
+            Settings = settings;
+            if (Settings != null)
+                InitValues();
         }
 
         public ToasterSettings Settings { get; }
@@ -37,6 +46,9 @@ namespace Cashew.Toasty.Sample
             HorizontalAdjustment.Text = Settings.HorizontalAdjustment.ToString();
             FromDirection.SelectedItem = Settings.FromDirection;
             ToastLocation.SelectedItem = Settings.EnterLocation;
+            InvertStacking.IsChecked = Settings.InvertStacking;
+            LeaveStyle.SelectedItem = Settings.LeaveStyle;
+            LeaveDirection.SelectedItem = Settings.LeaveDirection;
         }
 
         void Save()
@@ -48,6 +60,9 @@ namespace Cashew.Toasty.Sample
             Settings.HorizontalAdjustment = double.Parse(HorizontalAdjustment.Text);
             Settings.FromDirection = (Direction) FromDirection.SelectedItem;
             Settings.EnterLocation = (Location) ToastLocation.SelectedItem;
+            Settings.InvertStacking = InvertStacking.IsChecked ?? false;
+            Settings.LeaveStyle = (LeaveStyle) LeaveStyle.SelectedItem;
+            Settings.LeaveDirection = (Direction) LeaveDirection.SelectedItem;
         }
 
         void Save_OnClick(object sender, RoutedEventArgs e)

@@ -54,5 +54,11 @@
         /// Determines how the toast should leave the screen when its lifetime has expired.
         /// </summary>
         public LeaveStyle LeaveStyle { get; set; }
+
+        /// <summary>
+        /// The direction that the toast will slide if <see cref="LeaveStyle"/> is set
+        /// to <see cref="LeaveStyle.SlideOut"/>
+        /// </summary>
+        public Direction LeaveDirection { get; set; }
     }
 }

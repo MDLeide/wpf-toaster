@@ -7,36 +7,19 @@ namespace Cashew.Toasty.Sample
     /// </summary>
     public partial class MainWindow : Window
     {
+        Toaster _toaster;
+
         public MainWindow()
         {
             InitializeComponent();
-            Types.Items.Add("Info");
-            Types.Items.Add("Success");
-            Types.Items.Add("Warning");
-            Types.Items.Add("Error");
-            Types.SelectedIndex = 0;
-
-            ToastTitle.Text = "Sample Title";
-            ToastMessage.Text = "Sample Message";
+            Loaded += (s, e) => _toaster = new Toaster(this, ToasterSettings.Settings, null, ToastSettings.Settings);
         }
+
+        
 
         void Show_OnClick(object sender, RoutedEventArgs e)
         {
-            //switch ((string)Types.SelectedItem)
-            //{
-            //    case "Info":
-            //        Toast.Info(this, ToastMessage.Text, ToastTitle.Text);
-            //        break;
-            //    case "Warning":
-            //        Toast.Warning(this, ToastMessage.Text, ToastTitle.Text);
-            //        break;
-            //    case "Success":
-            //        Toast.Success(this, ToastMessage.Text, ToastTitle.Text);
-            //        break;
-            //    case "Error":
-            //        Toast.Error(this, ToastMessage.Text, ToastTitle.Text);
-            //        break;
-            //}
+            _toaster.Show(Message.Title, Message.Message);
         }
     }
 }

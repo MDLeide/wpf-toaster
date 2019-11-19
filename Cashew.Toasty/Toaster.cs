@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -45,7 +47,41 @@ namespace Cashew.Toasty
         double HorizontalAdjustment => _settings.HorizontalAdjustment;
         Direction FromDirection => _settings.FromDirection;
         Location EnterLocation => _settings.EnterLocation;
+        bool InvertStacking => _settings.InvertStacking;
+        LeaveStyle LeaveStyle => _settings.LeaveStyle;
+        Direction LeaveDirection => _settings.LeaveDirection;
 
+        HorizontalAlignment HorizontalAlignment
+        {
+            get
+            {
+                if (EnterLocation == Location.BottomLeft || 
+                    EnterLocation == Location.TopLeft ||
+                    EnterLocation == Location.Left)
+                    return HorizontalAlignment.Left;
+                if (EnterLocation == Location.BottomRight ||
+                    EnterLocation == Location.TopRight ||
+                    EnterLocation == Location.Right)
+                    return HorizontalAlignment.Right;
+                return HorizontalAlignment.Center;
+            }
+        }
+
+        VerticalAlignment VerticalAlignment
+        {
+            get
+            {
+                if (EnterLocation == Location.TopLeft ||
+                    EnterLocation == Location.Top ||
+                    EnterLocation == Location.TopRight)
+                    return VerticalAlignment.Top;
+                if (EnterLocation == Location.BottomLeft ||
+                    EnterLocation == Location.Bottom ||
+                    EnterLocation == Location.BottomRight)
+                    return VerticalAlignment.Bottom;
+                return VerticalAlignment.Center;
+            }
+        }
 
         public void Show(
             string title, 
@@ -64,9 +100,14 @@ namespace Cashew.Toasty
                 throw new InvalidOperationException("Toast is configured to disallow user closing and to never expire.");
 
             var adorner = new ToastAdorner(ElementToAdorn, toastView ?? _getDefaultView(title, message));
-            ToastConfigurator.Configure(adorner, Window, toastSettings, title, message, Remove, clickAction);
+            Configure(adorner, toastSettings, clickAction, title, message);
             Add(adorner);
         }
+
+
+        delegate void RemoveDelegate(ToastAdorner adorner);
+        delegate void AnimateDelegate();
+        
 
         void Add(ToastAdorner toast)
         {
@@ -76,7 +117,7 @@ namespace Cashew.Toasty
                 toast.Left = GetInitialLeft(toast);
                 MoveForward();
             };
-            
+
             _adorners.Add(toast);
             _adornerLayer.Add(toast);
         }
@@ -102,32 +143,230 @@ namespace Cashew.Toasty
 
             MoveBackwards(index);
         }
-        
 
-        AdornerLayer GetWindowAdornerLayer(Window window, out UIElement uiElement)
+
+        #region Toast Configuration
+
+        void Configure(ToastAdorner adorner, ToastSettings settings, Action clickAction, string title, string message)
         {
-            uiElement = window;
-            var layer = AdornerLayer.GetAdornerLayer(window);
-            if (layer != null)
-                return layer;
-
-            if (window.Content is UIElement ui)
-            {
-                uiElement = ui;
-                if (ui is Visual v)
-                    layer = AdornerLayer.GetAdornerLayer(v);
-            }
-
-            return layer;
+            ConfigureClose(adorner, settings);
+            ConfigureClickAction(adorner, settings, clickAction);
+            var lifetime = settings.DynamicLifetime ? GetDynamicLifetime(settings, title, message) : settings.Lifetime;
+            ConfigureLeave(adorner, settings, lifetime);
         }
 
-        delegate void RemoveDelegate(ToastAdorner adorner);
-        delegate void AnimateDelegate();
+        void ConfigureClose(ToastAdorner adorner, ToastSettings settings)
+        {
+            if (!settings.CanUserClose)
+                return;
+
+            adorner.CloseRequested += (s, e) => Remove(adorner);
+            if (settings.CloseOnRightClick)
+                adorner.ToastView.MouseRightButtonUp += (s, e) => Remove(adorner);
+        }
+
+        void ConfigureClickAction(ToastAdorner adorner, ToastSettings settings, Action clickAction)
+        {
+            adorner.ToastView.MouseLeftButtonUp += (s, e) =>
+            {
+                clickAction();
+                if (settings.CloseAfterClickAction)
+                    Remove(adorner);
+            };
+        }
+
+        int GetDynamicLifetime(ToastSettings settings, string title, string message)
+        {
+            var lifetime =
+                (
+                    (string.IsNullOrEmpty(title) ? 0 : title.Length) +
+                    (string.IsNullOrEmpty(message) ? 0 : message.Length)
+                ) * settings.DynamicLifetimeMillisecondsPerCharacter +
+                settings.DynamicLifetimeBase;
+
+            if (lifetime < settings.DynamicLifetimeMinimum)
+                lifetime = settings.DynamicLifetimeMinimum;
+            if (lifetime > settings.DynamicLifetimeMaximum)
+                lifetime = settings.DynamicLifetimeMaximum;
+            return lifetime;
+        }
+
+        void ConfigureLeave(ToastAdorner adorner, ToastSettings settings, int lifetime)
+        {
+            if (settings.Lifetime <= 0)
+                return;
+
+            var lifetimeTimer = new Timer(lifetime);
+            lifetimeTimer.Elapsed += (s, e) =>
+            {
+                Remove(adorner);
+                lifetimeTimer.Dispose();
+            };
+
+            if (settings.RefreshLifetimeOnMouseOver)
+            {
+                adorner.MouseEnter += (s, e) => lifetimeTimer.Stop();
+                adorner.MouseLeave += (s, e) => lifetimeTimer.Start();
+            }
+
+            lifetimeTimer.AutoReset = false;
+            lifetimeTimer.Start();
+
+            if (settings.LeaveTime <= 0 || settings.Lifetime - settings.LeaveTime <= 0)
+                return;
+
+            Action leaveAction = null;
+            Action cancelAction = null;
+
+            var elapsedStopwatch = new Stopwatch();
+            var originalOpacity = adorner.Opacity;
+            var originalLeft = adorner.Left;
+            var originalTop = adorner.Top;
+
+            switch (LeaveStyle)
+            {
+                case LeaveStyle.FadeOut:
+                    leaveAction = () => Fade(originalOpacity, settings, adorner);
+                    cancelAction = () => CancelFade(adorner, originalOpacity);
+                    break;
+                case LeaveStyle.SlideOut:
+                    leaveAction = () =>
+                    {
+                        originalLeft = adorner.Left;
+                        originalTop = adorner.Top;
+                        Slide(adorner, settings);
+                        elapsedStopwatch.Start();
+                    };
+                    cancelAction = () =>
+                    {
+                        var elapsed = (int) elapsedStopwatch.ElapsedMilliseconds;
+                        elapsedStopwatch.Reset();
+                        CancelSlide(adorner, originalLeft, originalTop, elapsed);
+                    };
+                    break;
+                case LeaveStyle.None:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            var leaveTimer = new Timer(settings.Lifetime - settings.LeaveTime);
+            leaveTimer.Elapsed += (s, e) =>
+            {
+                leaveTimer?.Dispose();
+                leaveTimer = null;
+                leaveAction?.Invoke();
+            };
+
+            if (settings.RefreshLifetimeOnMouseOver)
+            {
+                adorner.MouseEnter += (s, e) =>
+                {
+                    leaveTimer?.Dispose();
+                    leaveTimer = null;
+                    cancelAction?.Invoke();
+                };
+
+                adorner.MouseLeave += (s, e) =>
+                {
+                    leaveTimer = new Timer(settings.Lifetime - settings.LeaveTime);
+                    leaveTimer.Elapsed += (sender, args) =>
+                    {
+                        leaveTimer?.Dispose();
+                        leaveTimer = null;
+                        leaveTimer.Start();
+                    };
+                };
+            }
+
+            leaveTimer.AutoReset = false;
+            leaveTimer.Start();
+        }
+        
+        void Fade(double originalOpacity, ToastSettings settings, ToastAdorner adorner)
+        {
+            void Animate()
+            {
+                var animation = new DoubleAnimation(
+                    originalOpacity,
+                    0,
+                    GetLeaveTime(settings),
+                    FillBehavior.Stop);
+
+                adorner.BeginAnimation(UIElement.OpacityProperty, animation);
+            }
+
+            Application.Current?.Dispatcher?.Invoke((AnimateDelegate)Animate);
+        }
+        
+        void CancelFade(ToastAdorner adorner, double originalOpacity)
+        {
+            void Animate() { adorner.BeginAnimation(UIElement.OpacityProperty, null); }
+            Application.Current?.Dispatcher?.Invoke((AnimateDelegate)Animate);
+            adorner.Opacity = originalOpacity;
+        }
+
+        void Slide(ToastAdorner adorner, ToastSettings settings)
+        {
+            var targetTop = adorner.Top;
+            var targetLeft = adorner.Left;
+
+            if (LeaveDirection == Direction.Left)
+                targetLeft = -adorner.ActualWidth;
+            else if (LeaveDirection == Direction.Right)
+                targetLeft = GetWidth();
+            else if (LeaveDirection == Direction.Top)
+                targetTop = -adorner.ActualHeight;
+            else if (LeaveDirection == Direction.Bottom)
+                targetTop = GetHeight();
+            else
+                throw new ArgumentOutOfRangeException();
+
+            void Animate()
+            {
+                var horizontal = LeaveDirection == Direction.Left || LeaveDirection == Direction.Right;
+                var animation = new DoubleAnimation(
+                    horizontal ? adorner.Left : adorner.Top,
+                    horizontal ? targetLeft : targetTop,
+                    GetLeaveTime(settings),
+                    FillBehavior.Stop);
+
+                adorner.BeginAnimation(horizontal ? ToastAdorner.LeftProperty : ToastAdorner.TopProperty, animation);
+            }
+
+            Application.Current?.Dispatcher?.Invoke((AnimateDelegate) Animate);
+        }
+
+        void CancelSlide(ToastAdorner adorner, double originalLeft, double originalTop, int elapsedTime)
+        {
+            void Animate()
+            {
+                var horizontal = LeaveDirection == Direction.Left || LeaveDirection == Direction.Right;
+                adorner.BeginAnimation(horizontal ? ToastAdorner.LeftProperty : ToastAdorner.TopProperty, null);
+                var animation = new DoubleAnimation(
+                    horizontal ? adorner.Left : adorner.Top,
+                    horizontal ? originalLeft : originalTop,
+                    GetCancelTime(elapsedTime),
+                    FillBehavior.Stop);
+                adorner.BeginAnimation(horizontal ? ToastAdorner.LeftProperty : ToastAdorner.TopProperty, animation);
+            }
+
+            Application.Current?.Dispatcher?.Invoke((AnimateDelegate) Animate);
+        }
+
+        #endregion // Toast Configuration
+        
+        #region Movement
 
         void MoveForward()
         {
             if (FromDirection == Direction.Top || FromDirection == Direction.Bottom)
-                MoveVertical(FromDirection == Direction.Top);
+            {
+                if (InvertStacking)
+                    MoveHorizontal(HorizontalAlignment == HorizontalAlignment.Left);
+                else
+                    MoveVertical(FromDirection == Direction.Top);
+            }
             else
                 MoveHorizontal(FromDirection == Direction.Left);
         }
@@ -135,9 +374,19 @@ namespace Cashew.Toasty
         void MoveBackwards(int startingIndex)
         {
             if (FromDirection == Direction.Top || FromDirection == Direction.Bottom)
-                MoveVertical(FromDirection == Direction.Top, startingIndex);
+            {
+                if (InvertStacking)
+                    MoveHorizontal(HorizontalAlignment == HorizontalAlignment.Left, startingIndex);
+                else
+                    MoveVertical(FromDirection == Direction.Top, startingIndex);
+            }
             else
-                MoveHorizontal(FromDirection == Direction.Left, startingIndex);
+            {
+                if (InvertStacking)
+                    MoveVertical(VerticalAlignment == VerticalAlignment.Top, startingIndex);
+                else
+                    MoveHorizontal(FromDirection == Direction.Left, startingIndex);
+            }
         }
 
         void MoveHorizontal(bool moveRight)
@@ -146,6 +395,11 @@ namespace Cashew.Toasty
         }
 
         void MoveHorizontal(bool moveRight, int startingIndex)
+        {
+            MoveHorizontal(moveRight, startingIndex, 0);
+        }
+
+        void MoveHorizontal(bool moveRight, int startingIndex, int lastIndex)
         {
             if (!_adorners.Any())
                 return;
@@ -167,7 +421,7 @@ namespace Cashew.Toasty
                     var animation = new DoubleAnimation(_adorners[index].Left, targetLeftCopy, MoveDuration);
                     _adorners[index].BeginAnimation(ToastAdorner.LeftProperty, animation);
                 }
-                Application.Current?.Dispatcher?.Invoke((AnimateDelegate) Animate);
+                Application.Current?.Dispatcher?.Invoke((AnimateDelegate)Animate);
             }
         }
 
@@ -201,7 +455,11 @@ namespace Cashew.Toasty
                 Application.Current?.Dispatcher?.Invoke((AnimateDelegate) Animate);
             }
         }
-        
+
+        #endregion
+
+        #region Position and Dimensions
+
         double GetInitialLeft(ToastAdorner adorner)
         {
             if (EnterLocation == Location.Top && FromDirection == Direction.Top ||
@@ -304,6 +562,36 @@ namespace Cashew.Toasty
             if (ElementToAdorn is FrameworkElement frameworkElement)
                 return _adornerLayer.ActualWidth - frameworkElement.Margin.Top;
             return 0;
+        }
+
+        #endregion
+
+        AdornerLayer GetWindowAdornerLayer(Window window, out UIElement uiElement)
+        {
+            uiElement = window;
+            var layer = AdornerLayer.GetAdornerLayer(window);
+            if (layer != null)
+                return layer;
+
+            if (window.Content is UIElement ui)
+            {
+                uiElement = ui;
+                if (ui is Visual v)
+                    layer = AdornerLayer.GetAdornerLayer(v);
+            }
+
+            return layer;
+        }
+
+
+        Duration GetCancelTime(int ms)
+        {
+            return new Duration(new TimeSpan(0, 0, 0, 0, ms));
+        }
+
+        Duration GetLeaveTime(ToastSettings settings)
+        {
+            return new Duration(new TimeSpan(0, 0, 0, 0, settings.LeaveTime));
         }
     }
 }
