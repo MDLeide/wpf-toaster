@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="Cashew.Toasty.Sample.SystemConfiguration"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <Label Content="Move Duration"/>
+            <TextBox x:Name="MoveDuration"/>
+
+            <Label Content="Vertical Padding"/>
+            <TextBox x:Name="VerticalPadding"/>
+
+            <Label Content="Horizontal Padding"/>
+            <TextBox x:Name="HorizontalPadding"/>
+            
+            <Label Content="Vertical Adjustment"/>
+            <TextBox x:Name="VerticalAdjustment"/>
+
+            <Label Content="Horizontal Adjustment"/>
+            <TextBox x:Name="HorizontalAdjustment"/>
+
+            <Label Content="From Direction"/>
+            <ComboBox x:Name="FromDirection"/>
+
+            <Label Content="Toast Location"/>
+            <ComboBox x:Name="ToastLocation"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center">
+            <Button Content="Save" Click="Save_OnClick" Margin="5"/>
+            <Button Content="Clear Changes" Click="Clear_OnClick" Margin="5"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

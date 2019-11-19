@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0510279C-F31B-4475-8B9B-03E946A5C73D}</ProjectGuid>
-    <OutputType>library</OutputType>
-    <RootNamespace>Cashew.Toasty</RootNamespace>
-    <AssemblyName>Cashew.Toasty</AssemblyName>
+    <ProjectGuid>{72E71FE7-5743-4A9F-801A-1ECD75A91A57}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Cashew.Toasty.Sample</RootNamespace>
+    <AssemblyName>Cashew.Toasty.Sample</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -15,6 +15,7 @@
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,7 +36,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -48,20 +49,11 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Direction.cs" />
-    <Compile Include="Location.cs" />
-    <Compile Include="ToastAdorner.cs" />
-    <Compile Include="ElementToaster.cs" />
-    <Compile Include="Config\ToastSettings.cs" />
-    <Compile Include="Toast.cs" />
-    <Compile Include="Toaster.cs" />
-    <Compile Include="Config\ToasterSettings.cs" />
-    <Compile Include="Config\ToastTemplate.cs" />
-    <Compile Include="ToastView.xaml.cs">
-      <DependentUpon>ToastView.xaml</DependentUpon>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="ConfigurationView.xaml.cs" />
+    <Compile Include="MainWindow.xaml.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -75,6 +67,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="SystemConfiguration.xaml.cs" />
+    <Compile Include="ToastConfigView.xaml.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -85,22 +79,32 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\final-error-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\final-info-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\final-success-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\final-warning-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="ToastView.xaml">
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Page Include="ConfigurationView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SystemConfiguration.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ToastConfigView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cashew.Toasty\Cashew.Toasty.csproj">
+      <Project>{0510279c-f31b-4475-8b9b-03e946a5c73d}</Project>
+      <Name>Cashew.Toasty</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

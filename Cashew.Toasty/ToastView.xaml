@@ -1,0 +1,113 @@
+﻿<UserControl x:Class="Cashew.Toasty.ToastView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" 
+             d:DesignWidth="800">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+
+    <Grid x:Name="LayoutRoot" Height="Auto">
+        <Border 
+            x:Name="InnerBorder" 
+            BorderThickness="{Binding InnerBorderThickness}" 
+            BorderBrush="{Binding InnerBorderBrush}" 
+            CornerRadius="{Binding CornerRadius}" 
+            Height="Auto">
+            <Border.OpacityMask>
+                <VisualBrush>
+                    <VisualBrush.Visual>
+                        <Border 
+                            Background="Black"
+                            SnapsToDevicePixels="True"
+                            CornerRadius="{Binding CornerRadius, RelativeSource={RelativeSource AncestorType=Border}}"
+                            Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border}}"
+                            Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Border.OpacityMask>
+            <Grid x:Name="BorderGrid" Height="Auto" ClipToBounds="True">
+                <Grid
+                    ClipToBounds="True"
+                    x:Name="InnerGrid" 
+                    Background="{Binding MessageBackgroundBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- title -->
+                    <Grid Grid.Row="0" Grid.Column="1" Background="{Binding TitleBackgroundBrush}">
+                        <TextBlock 
+                            x:Name="TitleText"
+                            Text="{Binding ToastTitle}" 
+                            TextWrapping="{Binding TitleTextWrapping}"
+                            HorizontalAlignment="{Binding TitleHorizontalAlignment}"
+                            VerticalAlignment="{Binding TitleVerticalAlignment}"
+                            Foreground="{Binding TitleForegroundBrush}" 
+                            FontWeight="{Binding TitleFontWeight}" 
+                            FontSize="{Binding TitleFontSize}"
+                            Margin="{Binding TitleMargin}"/>
+                    </Grid>
+
+                    <!-- message -->
+                    <Grid Grid.Row="1" Grid.Column="1" Background="{Binding MessageBackgroundBrush}">
+                        <TextBlock 
+                            x:Name="MessageText" 
+                            Text="{Binding Message}" 
+                            TextWrapping="{Binding MessageTextWrapping}"
+                            HorizontalAlignment="{Binding MessageHorizontalAlignment}"
+                            VerticalAlignment="{Binding MessageVerticalAlignment}"
+                            Foreground="{Binding MessageForegroundBrush}" 
+                            FontWeight="{Binding MessageFontWeight}" 
+                            FontSize="{Binding MessageFontSize}"
+                            Margin="{Binding MessageMargin}"/>
+                    </Grid>
+
+                    <!-- icon -->
+                    <Image 
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
+                        Grid.Column="0"
+                        x:Name="IconImage"
+                        Margin="10"
+                        Height="{Binding IconImageSize}"
+                        Width="{Binding IconImageSize}"
+                        Source="{Binding IconImageSource}"
+                        HorizontalAlignment="Left" 
+                        VerticalAlignment="Center"/>
+
+                </Grid>
+
+                <!-- Close Button -->
+                <Button 
+                    Height="10"
+                    Width="10" 
+                    Margin="3"
+                    Click="CloseButton_OnClick"
+                    BorderThickness="0" 
+                    BorderBrush="Transparent" 
+                    Background="Transparent" 
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Visibility="{Binding ShowCloseButton, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Path 
+                        Stroke="{Binding CloseButtonStrokeBrush}" 
+                        Fill="{Binding CloseButtonFillBrush}"
+                        StrokeThickness="2"
+                        Data="M 0,0 L 10,10 M 0,10 L 10,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
