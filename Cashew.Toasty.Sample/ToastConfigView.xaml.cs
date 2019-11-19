@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Cashew.Toasty.Config;
 
 namespace Cashew.Toasty.Sample
 {
@@ -38,7 +39,7 @@ namespace Cashew.Toasty.Sample
             DynamicLifetimeMillisecondsPerCharacter.Text = Configuration.DynamicLifetimeMillisecondsPerCharacter.ToString();
             DynamicLifetimeMinimum.Text = Configuration.DynamicLifetimeMinimum.ToString();
             DynamicLifetimeMaximum.Text = Configuration.DynamicLifetimeMaximum.ToString();
-            FadeTime.Text = Configuration.FadeTime.ToString();
+            FadeTime.Text = Configuration.LeaveTime.ToString();
         }
 
         void DoSave()
@@ -56,7 +57,7 @@ namespace Cashew.Toasty.Sample
             Configuration.DynamicLifetimeMinimum = int.Parse(DynamicLifetimeMinimum.Text);
             Configuration.DynamicLifetimeMaximum = int.Parse(DynamicLifetimeMaximum.Text);
 
-            Configuration.FadeTime = int.Parse(FadeTime.Text);
+            Configuration.LeaveTime = int.Parse(FadeTime.Text);
         }
 
         void Save_OnClick(object sender, RoutedEventArgs e)

@@ -22,26 +22,26 @@ namespace Cashew.Toasty.Sample
         {
             ToastConfigView toast;
 
-            switch ((string)Type.SelectedItem)
-            {
-                case "Info":
-                    toast = new ToastConfigView(Toast.InfoConfiguration);
-                    break;
-                case "Warning":
-                    toast = new ToastConfigView(Toast.WarningConfiguration);
-                    break;
-                case "Error":
-                    toast = new ToastConfigView(Toast.ErrorConfiguration);
-                    break;
-                case "Success":
-                    toast = new ToastConfigView(Toast.SuccessConfiguration);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            //switch ((string)Type.SelectedItem)
+            //{
+            //    case "Info":
+            //        toast = new ToastConfigView(Toast.InfoConfiguration);
+            //        break;
+            //    case "Warning":
+            //        toast = new ToastConfigView(Toast.WarningConfiguration);
+            //        break;
+            //    case "Error":
+            //        toast = new ToastConfigView(Toast.ErrorConfiguration);
+            //        break;
+            //    case "Success":
+            //        toast = new ToastConfigView(Toast.SuccessConfiguration);
+            //        break;
+            //    default:
+            //        throw new ArgumentOutOfRangeException();
+            //}
 
-            ConfigGrid.Children.Remove(ToastConfig);
-            ConfigGrid.Children.Add(toast);
+            //ConfigGrid.Children.Remove(ToastConfig);
+            //ConfigGrid.Children.Add(toast);
         }
     }
 }

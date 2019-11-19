@@ -22,21 +22,21 @@ namespace Cashew.Toasty.Sample
 
         void Show_OnClick(object sender, RoutedEventArgs e)
         {
-            switch ((string)Types.SelectedItem)
-            {
-                case "Info":
-                    Toast.Info(this, ToastMessage.Text, ToastTitle.Text);
-                    break;
-                case "Warning":
-                    Toast.Warning(this, ToastMessage.Text, ToastTitle.Text);
-                    break;
-                case "Success":
-                    Toast.Success(this, ToastMessage.Text, ToastTitle.Text);
-                    break;
-                case "Error":
-                    Toast.Error(this, ToastMessage.Text, ToastTitle.Text);
-                    break;
-            }
+            //switch ((string)Types.SelectedItem)
+            //{
+            //    case "Info":
+            //        Toast.Info(this, ToastMessage.Text, ToastTitle.Text);
+            //        break;
+            //    case "Warning":
+            //        Toast.Warning(this, ToastMessage.Text, ToastTitle.Text);
+            //        break;
+            //    case "Success":
+            //        Toast.Success(this, ToastMessage.Text, ToastTitle.Text);
+            //        break;
+            //    case "Error":
+            //        Toast.Error(this, ToastMessage.Text, ToastTitle.Text);
+            //        break;
+            //}
         }
     }
 }

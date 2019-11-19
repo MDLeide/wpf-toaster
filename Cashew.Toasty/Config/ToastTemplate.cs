@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace Cashew.Toasty
+namespace Cashew.Toasty.Config
 {
     /// <summary>
     /// Provides properties that can be used to configure the default <see cref="ToastView"/>.

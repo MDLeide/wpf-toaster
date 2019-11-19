@@ -1,14 +1,7 @@
-﻿using System;
-
-namespace Cashew.Toasty
+﻿namespace Cashew.Toasty.Config
 {
     public class ToastSettings
     {
-        /// <summary>
-        /// An action to execute when the user left clicks on the toast.
-        /// </summary>
-        public Action ClickAction { get; set; }
-
         /// <summary>
         /// True if the user can close the toast.
         /// </summary>
@@ -20,7 +13,7 @@ namespace Cashew.Toasty
         public bool CloseOnRightClick { get; set; }
 
         /// <summary>
-        /// True if the toast should automatically close after executing the <see cref="ClickAction"/>.
+        /// True if the toast should automatically close after executing the click action.
         /// </summary>
         public bool CloseAfterClickAction { get; set; }
 
@@ -54,10 +47,10 @@ namespace Cashew.Toasty
         public int DynamicLifetimeMaximum { get; set; }
 
         /// <summary>
-        /// How long, in milliseconds, the toast takes to fade from view. The toast will
-        /// start fading after <see cref="Lifetime"/> - <see cref="FadeTime"/> have elapsed. Use
-        /// 0 for instant removal without a fade.
+        /// How long, in milliseconds, the toast takes to leave the screen. The toast will
+        /// start leaving after <see cref="Lifetime"/> - <see cref="LeaveTime"/> have elapsed. Use
+        /// 0 for instant removal.
         /// </summary>
-        public int FadeTime { get; set; }
+        public int LeaveTime { get; set; }
     }
 }

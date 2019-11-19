@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using Cashew.Toasty.Config;
 
 namespace Cashew.Toasty.Sample
 {
@@ -10,38 +11,43 @@ namespace Cashew.Toasty.Sample
     /// </summary>
     public partial class SystemConfiguration : UserControl
     {
-        public SystemConfiguration()
+        public SystemConfiguration(ToasterSettings settings)
         {
             InitializeComponent();
+
             foreach (var dir in Enum.GetValues(typeof(Direction)).Cast<Direction>())
                 FromDirection.Items.Add(dir);
 
             foreach (var loc in Enum.GetValues(typeof(Location)).Cast<Location>())
                 ToastLocation.Items.Add(loc);
 
+            Settings = settings;
+
             InitValues();
         }
 
+        public ToasterSettings Settings { get; }
+
         void InitValues()
         {
-            MoveDuration.Text = Toaster.MoveDuration.ToString();
-            VerticalPadding.Text = Toaster.VerticalPadding.ToString();
-            VerticalAdjustment.Text = Toaster.VerticalAdjustment.ToString();
-            HorizontalPadding.Text = Toaster.HorizontalPadding.ToString();
-            HorizontalAdjustment.Text = Toaster.HorizontalAdjustment.ToString();
-            FromDirection.SelectedItem = Toaster.FromDirection;
-            ToastLocation.SelectedItem = Toaster.ToastLocation;
+            MoveDuration.Text = Settings.MoveDuration.ToString();
+            VerticalPadding.Text = Settings.VerticalPadding.ToString();
+            VerticalAdjustment.Text = Settings.VerticalAdjustment.ToString();
+            HorizontalPadding.Text = Settings.HorizontalPadding.ToString();
+            HorizontalAdjustment.Text = Settings.HorizontalAdjustment.ToString();
+            FromDirection.SelectedItem = Settings.FromDirection;
+            ToastLocation.SelectedItem = Settings.EnterLocation;
         }
 
         void Save()
         {
-            Toaster.MoveDuration = int.Parse(MoveDuration.Text);
-            Toaster.VerticalPadding = double.Parse(VerticalPadding.Text);
-            Toaster.VerticalAdjustment = double.Parse(VerticalAdjustment.Text);
-            Toaster.HorizontalPadding = double.Parse(HorizontalPadding.Text);
-            Toaster.HorizontalAdjustment = double.Parse(HorizontalAdjustment.Text);
-            Toaster.FromDirection = (Direction) FromDirection.SelectedItem;
-            Toaster.ToastLocation = (Location) ToastLocation.SelectedItem;
+            Settings.MoveDuration = int.Parse(MoveDuration.Text);
+            Settings.VerticalPadding = double.Parse(VerticalPadding.Text);
+            Settings.VerticalAdjustment = double.Parse(VerticalAdjustment.Text);
+            Settings.HorizontalPadding = double.Parse(HorizontalPadding.Text);
+            Settings.HorizontalAdjustment = double.Parse(HorizontalAdjustment.Text);
+            Settings.FromDirection = (Direction) FromDirection.SelectedItem;
+            Settings.EnterLocation = (Location) ToastLocation.SelectedItem;
         }
 
         void Save_OnClick(object sender, RoutedEventArgs e)
