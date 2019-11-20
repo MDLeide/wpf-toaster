@@ -1,23 +1,39 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Cashew.Toasty.Config;
 using Cashew.Toasty.Defaults;
+using Timer = System.Timers.Timer;
 
 namespace Cashew.Toasty
 {
+    class ToastQueueEntry
+    {
+        public ToastAdorner Adorner { get; set; }
+        public ToastSettings Settings { get; set; }
+        public Action ClickAction { get; set; }
+        public string Message { get; set; }
+        public string Title { get; set; }
+    }
+
     public class Toaster
     {
         readonly List<ToastAdorner> _adorners = new List<ToastAdorner>();
         readonly AdornerLayer _adornerLayer;
         readonly ToasterSettings _settings;
         readonly Func<string, string, UIElement> _getDefaultView;
+        readonly ConcurrentQueue<ToastQueueEntry> _queue = new ConcurrentQueue<ToastQueueEntry>();
+        readonly object _queueLock = new object();
+
+        bool _queueIsProcessing;
 
         
         public Toaster(Window window, ToasterSettings settings = null, Func<string, string, UIElement> getDefaultView = null, ToastSettings defaultToastSettings = null)
@@ -28,7 +44,6 @@ namespace Cashew.Toasty
             DefaultToastSettings = defaultToastSettings ?? DefaultSettings.DefaultToastSettings;
             ElementToAdorn = elementToAdorn;
             Window = window;
-            MoveDuration = new Duration(new TimeSpan(0, 0, 0, 0, _settings.MoveDuration));
         }
 
 
@@ -40,16 +55,22 @@ namespace Cashew.Toasty
         public Window Window { get; }
         public UIElement ElementToAdorn { get; }
 
-        Duration MoveDuration { get; }
+        Duration MoveDuration => new Duration(new TimeSpan(0, 0, 0, 0, _settings.MoveDuration));
+        int MoveTime => _settings.MoveDuration;
+        MoveStyle MoveStyle => _settings.MoveStyle;
+        Direction MoveDirection => _settings.MoveDirection;
         double VerticalPadding => _settings.VerticalPadding;
         double HorizontalPadding => _settings.HorizontalPadding;
         double VerticalAdjustment => _settings.VerticalAdjustment;
         double HorizontalAdjustment => _settings.HorizontalAdjustment;
-        Direction FromDirection => _settings.FromDirection;
+        EnterStyle EnterStyle => _settings.EnterStyle;
+        Direction EnterFromDirection => _settings.EnterFromDirection;
         Location EnterLocation => _settings.EnterLocation;
-        bool InvertStacking => _settings.InvertStacking;
         LeaveStyle LeaveStyle => _settings.LeaveStyle;
         Direction LeaveDirection => _settings.LeaveDirection;
+        bool QueueToasts => _settings.QueueToasts;
+
+
 
         HorizontalAlignment HorizontalAlignment
         {
@@ -100,14 +121,37 @@ namespace Cashew.Toasty
                 throw new InvalidOperationException("Toast is configured to disallow user closing and to never expire.");
 
             var adorner = new ToastAdorner(ElementToAdorn, toastView ?? _getDefaultView(title, message));
-            Configure(adorner, toastSettings, clickAction, title, message);
-            Add(adorner);
+
+            if (QueueToasts)
+            {
+                AddToQueue(adorner, toastSettings, clickAction, title, message);
+                ProcessQueue();
+            }
+            else
+            {
+                Configure(adorner, toastSettings, clickAction, title, message);
+                Add(adorner);
+            }
         }
 
 
         delegate void RemoveDelegate(ToastAdorner adorner);
-        delegate void AnimateDelegate();
-        
+        delegate void ActionDelegate();
+
+
+        void AddToQueue(ToastAdorner adorner, ToastSettings toastSettings, Action clickAction, string title, string message)
+        {
+            var queueEntry = new ToastQueueEntry()
+            {
+                Adorner = adorner,
+                Settings = toastSettings,
+                ClickAction = clickAction,
+                Title = title,
+                Message = message
+            };
+
+            _queue.Enqueue(queueEntry);
+        }
 
         void Add(ToastAdorner toast)
         {
@@ -144,6 +188,36 @@ namespace Cashew.Toasty
             MoveBackwards(index);
         }
 
+        void ProcessQueue()
+        {
+            lock (_queueLock)
+            {
+                if (_queueIsProcessing)
+                    return;
+                _queueIsProcessing = true;
+            }
+
+            Task.Factory.StartNew(() =>
+            {
+                while (_queue.TryDequeue(out var entry))
+                {
+                    var entryCopy = entry;
+                    void ConfigureAndAdd()
+                    {
+                        Configure(entryCopy.Adorner, entryCopy.Settings, entryCopy.ClickAction, entryCopy.Title, entryCopy.Message);
+                        Add(entryCopy.Adorner);
+                    }
+
+                    Application.Current?.Dispatcher?.Invoke((ActionDelegate) ConfigureAndAdd);
+                    Thread.Sleep(MoveTime);
+                }
+
+                lock (_queueLock)
+                {
+                    _queueIsProcessing = false;
+                }
+            });
+        }
 
         #region Toast Configuration
 
@@ -152,6 +226,7 @@ namespace Cashew.Toasty
             ConfigureClose(adorner, settings);
             ConfigureClickAction(adorner, settings, clickAction);
             var lifetime = settings.DynamicLifetime ? GetDynamicLifetime(settings, title, message) : settings.Lifetime;
+            ConfigureRemove(adorner, settings, lifetime);
             ConfigureLeave(adorner, settings, lifetime);
         }
 
@@ -191,7 +266,7 @@ namespace Cashew.Toasty
             return lifetime;
         }
 
-        void ConfigureLeave(ToastAdorner adorner, ToastSettings settings, int lifetime)
+        void ConfigureRemove(ToastAdorner adorner, ToastSettings settings, int lifetime)
         {
             if (settings.Lifetime <= 0)
                 return;
@@ -211,18 +286,28 @@ namespace Cashew.Toasty
 
             lifetimeTimer.AutoReset = false;
             lifetimeTimer.Start();
+        }
 
-            if (settings.LeaveTime <= 0 || settings.Lifetime - settings.LeaveTime <= 0)
+        void ConfigureLeave(ToastAdorner adorner, ToastSettings settings, int lifetime)
+        {
+            GetLeaveActions(adorner, settings, lifetime, out var leaveAction, out var cancelAction);
+            ConfigureLeaveActions(adorner, settings, lifetime, leaveAction, cancelAction);
+        }
+
+        void GetLeaveActions(ToastAdorner adorner, ToastSettings settings, int lifetime, out Action leaveAction, out Action cancelAction)
+        {
+            if (settings.LeaveTime <= 0 || lifetime - settings.LeaveTime <= 0)
+            {
+                leaveAction = null;
+                cancelAction = null;
                 return;
-
-            Action leaveAction = null;
-            Action cancelAction = null;
+            }
 
             var elapsedStopwatch = new Stopwatch();
-            var originalOpacity = adorner.Opacity;
-            var originalLeft = adorner.Left;
-            var originalTop = adorner.Top;
-
+            double originalOpacity = adorner.Opacity;
+            double originalLeft = adorner.Left;
+            double originalTop = adorner.Top;
+            
             switch (LeaveStyle)
             {
                 case LeaveStyle.FadeOut:
@@ -234,23 +319,29 @@ namespace Cashew.Toasty
                     {
                         originalLeft = adorner.Left;
                         originalTop = adorner.Top;
+
                         Slide(adorner, settings);
                         elapsedStopwatch.Start();
                     };
                     cancelAction = () =>
                     {
-                        var elapsed = (int) elapsedStopwatch.ElapsedMilliseconds;
+                        var elapsed = (int)elapsedStopwatch.ElapsedMilliseconds;
                         elapsedStopwatch.Reset();
                         CancelSlide(adorner, originalLeft, originalTop, elapsed);
                     };
                     break;
                 case LeaveStyle.None:
+                    leaveAction = null;
+                    cancelAction = null;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
 
-            var leaveTimer = new Timer(settings.Lifetime - settings.LeaveTime);
+        void ConfigureLeaveActions(ToastAdorner adorner, ToastSettings settings, int lifetime, Action leaveAction, Action cancelAction)
+        {
+            var leaveTimer = new Timer(lifetime - settings.LeaveTime);
             leaveTimer.Elapsed += (s, e) =>
             {
                 leaveTimer?.Dispose();
@@ -269,20 +360,21 @@ namespace Cashew.Toasty
 
                 adorner.MouseLeave += (s, e) =>
                 {
-                    leaveTimer = new Timer(settings.Lifetime - settings.LeaveTime);
+                    leaveTimer = new Timer(lifetime - settings.LeaveTime);
                     leaveTimer.Elapsed += (sender, args) =>
                     {
                         leaveTimer?.Dispose();
                         leaveTimer = null;
-                        leaveTimer.Start();
+                        leaveAction?.Invoke();
                     };
+                    leaveTimer.Start();
                 };
             }
 
             leaveTimer.AutoReset = false;
             leaveTimer.Start();
         }
-        
+
         void Fade(double originalOpacity, ToastSettings settings, ToastAdorner adorner)
         {
             void Animate()
@@ -295,33 +387,41 @@ namespace Cashew.Toasty
 
                 adorner.BeginAnimation(UIElement.OpacityProperty, animation);
             }
-
-            Application.Current?.Dispatcher?.Invoke((AnimateDelegate)Animate);
+            
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate)Animate);
         }
         
         void CancelFade(ToastAdorner adorner, double originalOpacity)
         {
             void Animate() { adorner.BeginAnimation(UIElement.OpacityProperty, null); }
-            Application.Current?.Dispatcher?.Invoke((AnimateDelegate)Animate);
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate)Animate);
             adorner.Opacity = originalOpacity;
         }
 
         void Slide(ToastAdorner adorner, ToastSettings settings)
         {
-            var targetTop = adorner.Top;
-            var targetLeft = adorner.Left;
+            double targetTop = 0;
+            double targetLeft = 0;
 
-            if (LeaveDirection == Direction.Left)
-                targetLeft = -adorner.ActualWidth;
-            else if (LeaveDirection == Direction.Right)
-                targetLeft = GetWidth();
-            else if (LeaveDirection == Direction.Top)
-                targetTop = -adorner.ActualHeight;
-            else if (LeaveDirection == Direction.Bottom)
-                targetTop = GetHeight();
-            else
-                throw new ArgumentOutOfRangeException();
+            void SetTargets()
+            {
+                targetTop = adorner.Top;
+                targetLeft = adorner.Left;
 
+                if (LeaveDirection == Direction.Left)
+                    targetLeft = -adorner.ActualWidth;
+                else if (LeaveDirection == Direction.Right)
+                    targetLeft = GetWidth();
+                else if (LeaveDirection == Direction.Up)
+                    targetTop = -adorner.ActualHeight;
+                else if (LeaveDirection == Direction.Down)
+                    targetTop = GetHeight();
+                else
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate) SetTargets);
+            
             void Animate()
             {
                 var horizontal = LeaveDirection == Direction.Left || LeaveDirection == Direction.Right;
@@ -334,7 +434,7 @@ namespace Cashew.Toasty
                 adorner.BeginAnimation(horizontal ? ToastAdorner.LeftProperty : ToastAdorner.TopProperty, animation);
             }
 
-            Application.Current?.Dispatcher?.Invoke((AnimateDelegate) Animate);
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate) Animate);
         }
 
         void CancelSlide(ToastAdorner adorner, double originalLeft, double originalTop, int elapsedTime)
@@ -351,7 +451,7 @@ namespace Cashew.Toasty
                 adorner.BeginAnimation(horizontal ? ToastAdorner.LeftProperty : ToastAdorner.TopProperty, animation);
             }
 
-            Application.Current?.Dispatcher?.Invoke((AnimateDelegate) Animate);
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate) Animate);
         }
 
         #endregion // Toast Configuration
@@ -360,33 +460,18 @@ namespace Cashew.Toasty
 
         void MoveForward()
         {
-            if (FromDirection == Direction.Top || FromDirection == Direction.Bottom)
-            {
-                if (InvertStacking)
-                    MoveHorizontal(HorizontalAlignment == HorizontalAlignment.Left);
-                else
-                    MoveVertical(FromDirection == Direction.Top);
-            }
+            if (EnterFromDirection == Direction.Up || EnterFromDirection == Direction.Down)
+                MoveVertical(EnterFromDirection == Direction.Up);
             else
-                MoveHorizontal(FromDirection == Direction.Left);
+                MoveHorizontal(EnterFromDirection == Direction.Left);
         }
 
         void MoveBackwards(int startingIndex)
         {
-            if (FromDirection == Direction.Top || FromDirection == Direction.Bottom)
-            {
-                if (InvertStacking)
-                    MoveHorizontal(HorizontalAlignment == HorizontalAlignment.Left, startingIndex);
-                else
-                    MoveVertical(FromDirection == Direction.Top, startingIndex);
-            }
+            if (EnterFromDirection == Direction.Up || EnterFromDirection == Direction.Down)
+                MoveVertical(EnterFromDirection == Direction.Up, startingIndex);
             else
-            {
-                if (InvertStacking)
-                    MoveVertical(VerticalAlignment == VerticalAlignment.Top, startingIndex);
-                else
-                    MoveHorizontal(FromDirection == Direction.Left, startingIndex);
-            }
+                MoveHorizontal(EnterFromDirection == Direction.Left, startingIndex);
         }
 
         void MoveHorizontal(bool moveRight)
@@ -421,7 +506,7 @@ namespace Cashew.Toasty
                     var animation = new DoubleAnimation(_adorners[index].Left, targetLeftCopy, MoveDuration);
                     _adorners[index].BeginAnimation(ToastAdorner.LeftProperty, animation);
                 }
-                Application.Current?.Dispatcher?.Invoke((AnimateDelegate)Animate);
+                Application.Current?.Dispatcher?.Invoke((ActionDelegate)Animate);
             }
         }
 
@@ -440,8 +525,8 @@ namespace Cashew.Toasty
             for (int i = _adorners.Count - 1; i >= 0; i--)
             {
                 targetTop += _adorners[i].ActualHeight * (moveDown ? 1 : -1);
+                targetTop += moveDown ? VerticalPadding : -VerticalPadding; 
                 var targetTopCopy = targetTop;
-                targetTop += moveDown ? VerticalPadding : -VerticalPadding;
                 
                 if (i > startingIndex)
                     continue;
@@ -452,7 +537,7 @@ namespace Cashew.Toasty
                     var animation = new DoubleAnimation(_adorners[index].Top, targetTopCopy, MoveDuration);
                     _adorners[index].BeginAnimation(ToastAdorner.TopProperty, animation);
                 }
-                Application.Current?.Dispatcher?.Invoke((AnimateDelegate) Animate);
+                Application.Current?.Dispatcher?.Invoke((ActionDelegate) Animate);
             }
         }
 
@@ -462,92 +547,109 @@ namespace Cashew.Toasty
 
         double GetInitialLeft(ToastAdorner adorner)
         {
-            if (EnterLocation == Location.Top && FromDirection == Direction.Top ||
-                EnterLocation == Location.Bottom && FromDirection == Direction.Bottom)
-                return GetWidth() / 2 - adorner.ActualWidth / 2 + HorizontalAdjustment;
-            
-            if (EnterLocation == Location.TopLeft)
+            double left = 0;
+
+            void GetLeft()
             {
-                if (FromDirection == Direction.Left)
-                    return -adorner.ActualWidth + HorizontalAdjustment;
-                if (FromDirection == Direction.Top)
-                    return HorizontalAdjustment;
-                throw new InvalidOperationException();
+                if (EnterLocation == Location.Top && EnterFromDirection == Direction.Up ||
+                    EnterLocation == Location.Bottom && EnterFromDirection == Direction.Down)
+                    left = GetWidth() / 2 - adorner.ActualWidth / 2;
+
+                if (EnterLocation == Location.TopLeft)
+                {
+                    if (EnterFromDirection == Direction.Left)
+                        left = -adorner.ActualWidth;
+                    else if (EnterFromDirection != Direction.Up)
+                        throw new InvalidOperationException();
+                }
+
+                if (EnterLocation == Location.BottomLeft)
+                {
+                    if (EnterFromDirection == Direction.Left)
+                        left = -adorner.ActualWidth;
+                    else if (EnterFromDirection != Direction.Down)
+                        throw new InvalidOperationException();
+                }
+
+                if (EnterLocation == Location.TopRight)
+                {
+                    if (EnterFromDirection == Direction.Right)
+                        left = GetWidth();
+                    else if (EnterFromDirection == Direction.Up)
+                        left = GetWidth() - adorner.ActualWidth;
+                    else
+                        throw new InvalidOperationException();
+                }
+
+                if (EnterLocation == Location.BottomRight)
+                {
+                    if (EnterFromDirection == Direction.Right)
+                        left = GetWidth();
+                    else if (EnterFromDirection == Direction.Down)
+                        left = GetWidth() - adorner.ActualWidth;
+                    else
+                        throw new InvalidOperationException();
+                }
+
+                left += HorizontalAdjustment;
             }
 
-            if (EnterLocation == Location.BottomLeft)
-            {
-                if (FromDirection == Direction.Left)
-                    return -adorner.ActualWidth + HorizontalAdjustment;
-                if (FromDirection == Direction.Bottom)
-                    return HorizontalAdjustment;
-                throw new InvalidOperationException();
-            }
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate) GetLeft);
+            return left;
 
-            if (EnterLocation == Location.TopRight)
-            {
-                if (FromDirection == Direction.Right)
-                    return GetWidth() + HorizontalAdjustment;
-                if (FromDirection == Direction.Top)
-                    return GetWidth() - adorner.ActualWidth + HorizontalAdjustment;
-                throw new InvalidOperationException();
-            }
-
-            if (EnterLocation == Location.BottomRight)
-            {
-                if (FromDirection == Direction.Right)
-                    return GetWidth() + HorizontalAdjustment;
-                if (FromDirection == Direction.Bottom)
-                    return GetWidth() - adorner.ActualWidth + HorizontalAdjustment;
-                throw new InvalidOperationException();
-            }
-
-            throw new InvalidOperationException();
         }
 
         double GetInitialTop(ToastAdorner adorner)
         {
-            if (EnterLocation == Location.Left && FromDirection == Direction.Left ||
-                EnterLocation == Location.Right && FromDirection == Direction.Right)
-                return GetHeight() / 2 - adorner.ActualHeight / 2 + VerticalAdjustment;
+            double top = 0;
 
-            if (EnterLocation == Location.TopLeft)
+            void GetTop()
             {
-                if (FromDirection == Direction.Left)
-                    return VerticalAdjustment;
-                if (FromDirection == Direction.Top)
-                    return -adorner.ActualHeight + VerticalAdjustment;
-                throw new InvalidOperationException();
+                if (EnterLocation == Location.Left && EnterFromDirection == Direction.Left ||
+                    EnterLocation == Location.Right && EnterFromDirection == Direction.Right)
+                    top = GetHeight() / 2 - adorner.ActualHeight / 2;
+
+                if (EnterLocation == Location.TopLeft)
+                {
+                    if (EnterFromDirection == Direction.Up)
+                        top = -adorner.ActualHeight;
+                    else if (EnterFromDirection != Direction.Left)
+                        throw new InvalidOperationException();
+                }
+
+                if (EnterLocation == Location.TopRight)
+                {
+                    if (EnterFromDirection == Direction.Up)
+                        top = -adorner.ActualHeight;
+                    else if (EnterFromDirection != Direction.Right)
+                        throw new InvalidOperationException();
+                }
+
+                if (EnterLocation == Location.BottomLeft)
+                {
+                    if (EnterFromDirection == Direction.Left)
+                        top = GetHeight() - adorner.ActualHeight;
+                    else if (EnterFromDirection == Direction.Down)
+                        top = GetHeight();
+                    else
+                        throw new InvalidOperationException();
+                }
+
+                if (EnterLocation == Location.BottomRight)
+                {
+                    if (EnterFromDirection == Direction.Right)
+                        top = GetHeight() - adorner.ActualHeight;
+                    else if (EnterFromDirection == Direction.Down)
+                        top = GetHeight();
+                    else
+                        throw new InvalidOperationException();
+                }
+
+                top += VerticalAdjustment;
             }
 
-            if (EnterLocation == Location.TopRight)
-            {
-                if (FromDirection == Direction.Right)
-                    return VerticalAdjustment;
-                if (FromDirection == Direction.Top)
-                    return -adorner.ActualHeight + VerticalAdjustment;
-                throw new InvalidOperationException();
-            }
-
-            if (EnterLocation == Location.BottomLeft)
-            {
-                if (FromDirection == Direction.Left)
-                    return GetHeight() - adorner.ActualHeight + VerticalAdjustment;
-                if (FromDirection == Direction.Bottom)
-                    return GetHeight() + VerticalAdjustment;
-                throw new InvalidOperationException();
-            }
-
-            if (EnterLocation == Location.BottomRight)
-            {
-                if (FromDirection == Direction.Right)
-                    return GetHeight() - adorner.ActualHeight + VerticalAdjustment;
-                if (FromDirection == Direction.Bottom)
-                    return GetHeight() + VerticalAdjustment;
-                throw new InvalidOperationException();
-            }
-
-            throw new InvalidOperationException();
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate) GetTop);
+            return top;
         }
 
         double GetHeight()
@@ -559,9 +661,10 @@ namespace Cashew.Toasty
 
         double GetWidth()
         {
+            double width = 0;
             if (ElementToAdorn is FrameworkElement frameworkElement)
-                return _adornerLayer.ActualWidth - frameworkElement.Margin.Top;
-            return 0;
+                width = _adornerLayer.ActualWidth - frameworkElement.Margin.Top;
+            return width;
         }
 
         #endregion
@@ -582,7 +685,6 @@ namespace Cashew.Toasty
 
             return layer;
         }
-
 
         Duration GetCancelTime(int ms)
         {

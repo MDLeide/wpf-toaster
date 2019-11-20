@@ -9,6 +9,16 @@
         public int MoveDuration { get; set; }
 
         /// <summary>
+        /// Determines how existing toasts move when a new toast is added.
+        /// </summary>
+        public MoveStyle MoveStyle { get; set; }
+
+        /// <summary>
+        /// Determines the direction that existing toast move when a new toast is added.
+        /// </summary>
+        public Direction MoveDirection { get; set; }
+
+        /// <summary>
         /// Vertical padding used to separate toasts when they are stacked vertically.
         /// </summary>
         public double VerticalPadding { get; set; }
@@ -34,21 +44,17 @@
         /// The direction that the toast will enter from. For example, if it is set to <see cref="Direction.Right"/>,
         /// the toast will slide to the left from the right side of the screen.
         /// </summary>
-        public Direction FromDirection { get; set; }
+        public Direction EnterFromDirection { get; set; }
 
         /// <summary>
         /// The area of the window that the toast will enter from.
         /// </summary>
         public Location EnterLocation { get; set; }
-
+        
         /// <summary>
-        /// Changes the stacking behavior when multiple toasts are on screen. Normally, if a toast enters
-        /// from the bottom, additional toasts will push the existing toasts up. Similarly, if a toast enters
-        /// from the side, additional toasts will push existing toasts across the screen. If <see cref="InvertStacking"/>
-        /// is true, when toasts are entering from the side of the screen, instead of pushing existing toasts
-        /// over, the new toast will be display above or below the existing toasts, depending on the <see cref="EnterLocation"/>.
+        /// Determines how the toast will enter the screen.
         /// </summary>
-        public bool InvertStacking { get; set; }
+        public EnterStyle EnterStyle { get; set; }
 
         /// <summary>
         /// Determines how the toast should leave the screen when its lifetime has expired.
@@ -60,5 +66,39 @@
         /// to <see cref="LeaveStyle.SlideOut"/>
         /// </summary>
         public Direction LeaveDirection { get; set; }
+
+        /// <summary>
+        /// If true, toasts that are added while another toast is still executing its enter animation
+        /// are queued until the animation finishes, resulting in a smoother look.
+        /// </summary>
+        public bool QueueToasts { get; set; }
+    }
+
+    public enum EnterStyle
+    {
+        /// <summary>
+        /// The toast will appear instantly on the screen.
+        /// </summary>
+        PopIn,
+        /// <summary>
+        /// The toast will fade from transparent to opaque.
+        /// </summary>
+        FadeIn,
+        /// <summary>
+        /// The toast will slide in from a side of the screen.
+        /// </summary>
+        SlideIn
+    }
+
+    public enum MoveStyle
+    {
+        /// <summary>
+        /// New toasts will push existing toasts in the <see cref="ToasterSettings.MoveDirection"/>.
+        /// </summary>
+        Push,
+        /// <summary>
+        /// New toasts will stack next to existing toasts depending on the <see cref="ToasterSettings.MoveDirection"/>
+        /// </summary>
+        Stack
     }
 }

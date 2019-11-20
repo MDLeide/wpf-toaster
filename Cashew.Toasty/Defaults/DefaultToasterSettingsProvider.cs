@@ -14,10 +14,11 @@ namespace Cashew.Toasty.Defaults
             {
                 LeaveStyle = LeaveStyle.FadeOut,
                 EnterLocation = Location.BottomRight,
-                FromDirection = Direction.Bottom,
+                EnterFromDirection = Direction.Down,
                 HorizontalAdjustment = -15,
                 MoveDuration = 500,
-                VerticalPadding = 15
+                VerticalPadding = 15,
+                QueueToasts = true
             };
         }
 

@@ -20,7 +20,7 @@ namespace Cashew.Toasty.Sample
 
             foreach (var dir in Enum.GetValues(typeof(Direction)).Cast<Direction>())
             {
-                FromDirection.Items.Add(dir);
+                EnterFromDirection.Items.Add(dir);
                 LeaveDirection.Items.Add(dir);
             }
 
@@ -44,11 +44,11 @@ namespace Cashew.Toasty.Sample
             VerticalAdjustment.Text = Settings.VerticalAdjustment.ToString();
             HorizontalPadding.Text = Settings.HorizontalPadding.ToString();
             HorizontalAdjustment.Text = Settings.HorizontalAdjustment.ToString();
-            FromDirection.SelectedItem = Settings.FromDirection;
+            EnterFromDirection.SelectedItem = Settings.EnterFromDirection;
             ToastLocation.SelectedItem = Settings.EnterLocation;
-            InvertStacking.IsChecked = Settings.InvertStacking;
             LeaveStyle.SelectedItem = Settings.LeaveStyle;
             LeaveDirection.SelectedItem = Settings.LeaveDirection;
+            QueueToasts.IsChecked = Settings.QueueToasts;
         }
 
         void Save()
@@ -58,11 +58,11 @@ namespace Cashew.Toasty.Sample
             Settings.VerticalAdjustment = double.Parse(VerticalAdjustment.Text);
             Settings.HorizontalPadding = double.Parse(HorizontalPadding.Text);
             Settings.HorizontalAdjustment = double.Parse(HorizontalAdjustment.Text);
-            Settings.FromDirection = (Direction) FromDirection.SelectedItem;
+            Settings.EnterFromDirection = (Direction) EnterFromDirection.SelectedItem;
             Settings.EnterLocation = (Location) ToastLocation.SelectedItem;
-            Settings.InvertStacking = InvertStacking.IsChecked ?? false;
             Settings.LeaveStyle = (LeaveStyle) LeaveStyle.SelectedItem;
             Settings.LeaveDirection = (Direction) LeaveDirection.SelectedItem;
+            Settings.QueueToasts = QueueToasts.IsChecked ?? false;
         }
 
         void Save_OnClick(object sender, RoutedEventArgs e)
