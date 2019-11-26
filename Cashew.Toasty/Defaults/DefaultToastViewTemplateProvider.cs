@@ -8,47 +8,86 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Cashew.Toasty.Config;
 using Cashew.Toasty.Properties;
+using Cashew.Toasty.Settings;
 
 namespace Cashew.Toasty.Defaults
 {
     static class DefaultToastViewTemplateProvider
     {
-        static DefaultToastViewTemplateProvider()
+        public static ToastTemplate DefaultToastTemplate { get; } = GetInfoTemplate();
+        public static ToastTemplate DefaultInfoTemplate { get; } = GetInfoTemplate();
+        public static ToastTemplate DefaultSuccessTemplate { get; } = GetSuccessTemplate();
+        public static ToastTemplate DefaultWarningTemplate { get; } = GetWarningTemplate();
+        public static ToastTemplate DefaultErrorTemplate { get; } = GetErrorTemplate();
+
+
+        static ToastTemplate GetInfoTemplate()
         {
-            DefaultToastTemplate = new ToastTemplate
-            {
-                ImageSize = 25,
-                ShowCloseButton = true,
-                CloseButtonStrokeBrush = new SolidColorBrush(Colors.White),
-                CloseButtonFillBrush = new SolidColorBrush(Colors.White),
-                AutoWidth = false,
-                AutoHeight = true,
-                Width = 325,
-                TitleBackgroundBrush = new SolidColorBrush(Colors.Green),
-                TitleForegroundBrush = new SolidColorBrush(Colors.White),
-                TitleFontSize = 15,
-                TitleFontWeight = FontWeights.Bold,
-                TitleMargin = new Thickness(8, 8, 8, 4),
-                TitleVerticalAlignment = VerticalAlignment.Center,
-                TitleHorizontalAlignment = HorizontalAlignment.Left,
-                MessageBackgroundBrush = new SolidColorBrush(Colors.Green),
-                MessageForegroundBrush = new SolidColorBrush(Colors.White),
-                MessageFontSize = 12,
-                MessageFontWeight = FontWeights.Normal,
-                MessageMargin = new Thickness(8, 4, 8, 8),
-                MessageVerticalAlignment = VerticalAlignment.Center,
-                MessageHorizontalAlignment = HorizontalAlignment.Left,
-                InnerBorderThickness = new Thickness(0),
-                InnerBorderBrush = new SolidColorBrush(Colors.WhiteSmoke),
-                CornerRadius = 3,
-                Opacity = 1,
-                ImageSource = ImageFromBitmap(Resources.final_info_icon_white)
-            };
+            var template = GetBaseTemplate();
+            template.ImageSource = ImageFromBitmap(Resources.final_info_icon_white);
+            return template;
+        }
+
+        static ToastTemplate GetSuccessTemplate()
+        {
+            var template = GetBaseTemplate();
+            template.ImageSource = ImageFromBitmap(Resources.final_success_icon_white);
+            return template;
+        }
+
+        static ToastTemplate GetWarningTemplate()
+        {
+            var template = GetBaseTemplate();
+            template.ImageSource = ImageFromBitmap(Resources.final_warning_icon_white);
+            return template;
+        }
+
+        static ToastTemplate GetErrorTemplate()
+        {
+            var template = GetBaseTemplate();
+            template.ImageSource = ImageFromBitmap(Resources.final_error_icon_white);
+            return template;
         }
         
-        public static ToastTemplate DefaultToastTemplate { get; }
+        static ToastTemplate GetBaseTemplate()
+        {
+            var template = new ToastTemplate();
+
+            template.ImageSize = 25;
+
+            template.ShowCloseButton = true;
+            template.CloseButtonStrokeBrush = new SolidColorBrush(Colors.White);
+            template.CloseButtonFillBrush = new SolidColorBrush(Colors.White);
+
+            template.AutoWidth = false;
+            template.AutoHeight = true;
+            template.Width = 325;
+
+            template.TitleBackgroundBrush = new SolidColorBrush(Colors.Green);
+            template.TitleForegroundBrush = new SolidColorBrush(Colors.White);
+            template.TitleFontSize = 15;
+            template.TitleFontWeight = FontWeights.Bold;
+            template.TitleMargin = new Thickness(8, 8, 8, 4);
+            template.TitleVerticalAlignment = VerticalAlignment.Center;
+            template.TitleHorizontalAlignment = HorizontalAlignment.Left;
+
+            template.MessageBackgroundBrush = new SolidColorBrush(Colors.Green);
+            template.MessageForegroundBrush = new SolidColorBrush(Colors.White);
+            template.MessageFontSize = 12;
+            template.MessageFontWeight = FontWeights.Normal;
+            template.MessageMargin = new Thickness(8, 4, 8, 8);
+            template.MessageVerticalAlignment = VerticalAlignment.Center;
+            template.MessageHorizontalAlignment = HorizontalAlignment.Left;
+
+            template.InnerBorderThickness = new Thickness(0);
+            template.InnerBorderBrush = new SolidColorBrush(Colors.WhiteSmoke);
+            template.CornerRadius = 3;
+
+            template.Opacity = 1;
+
+            return template;
+        }
 
         static BitmapImage ImageFromBitmap(Bitmap bitmap)
         {

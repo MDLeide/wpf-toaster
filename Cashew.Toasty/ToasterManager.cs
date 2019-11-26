@@ -5,8 +5,8 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using Cashew.Toasty.Config;
 using Cashew.Toasty.Defaults;
+using Cashew.Toasty.Settings;
 
 namespace Cashew.Toasty
 {
@@ -17,11 +17,11 @@ namespace Cashew.Toasty
     {
         readonly ToasterSettings _settings;
         readonly Func<string, string, UIElement> _getDefaultView;
-        readonly ToastSettings _defaultToastSettings;
+        readonly ToastAdornerSettings _defaultToastSettings;
         readonly Dictionary<Window, Toaster> _toasters = new Dictionary<Window, Toaster>();
 
 
-        public ToasterManager(ToasterSettings settings = null, Func<string, string, UIElement> getDefaultView = null, ToastSettings defaultToastSettings = null)
+        public ToasterManager(ToasterSettings settings = null, Func<string, string, UIElement> getDefaultView = null, ToastAdornerSettings defaultToastSettings = null)
         {
             _settings = settings;
             _getDefaultView = getDefaultView;
@@ -33,7 +33,7 @@ namespace Cashew.Toasty
             string title, 
             string message,
             Window window, 
-            ToastSettings toastSettings = null,
+            ToastAdornerSettings toastSettings = null,
             UIElement toastView = null,
             Action clickAction = null)
         {

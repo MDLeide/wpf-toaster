@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Cashew.Toasty.Config;
+using Cashew.Toasty.Settings;
 
 namespace Cashew.Toasty.Defaults
 {
@@ -10,7 +10,7 @@ namespace Cashew.Toasty.Defaults
     {
         static DefaultToasterSettingsProvider()
         {
-            DefaultToasterSettings = new ToasterSettings
+            DefaultToasterSettings = new ToasterSettings("default")
             {
                 LeaveStyle = LeaveStyle.FadeOut,
                 EnterLocation = Location.BottomRight,
@@ -18,7 +18,10 @@ namespace Cashew.Toasty.Defaults
                 HorizontalAdjustment = -15,
                 MoveDuration = 500,
                 VerticalPadding = 15,
-                QueueToasts = true
+                QueueToasts = true,
+                MoveStyle = MoveStyle.Push,
+                MoveDirection = Direction.Up,
+                EnterStyle = EnterStyle.SlideIn
             };
         }
 

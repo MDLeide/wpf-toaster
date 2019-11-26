@@ -4,8 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sample="clr-namespace:Cashew.Toasty.Sample"
+        xmlns:settings="clr-namespace:Cashew.Toasty.Sample.Settings"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="950">
+        Title="MainWindow" 
+        Background="LightBlue"
+        Height="575" 
+        Width="800">
     <Window.Resources>
         <Style TargetType="Border" x:Key="BorderStyle">
             <Setter Property="BorderThickness" Value="2"/>
@@ -16,29 +20,45 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="30"/>
-        </Grid.RowDefinitions>
-
-        <Border Grid.Column="0" Grid.Row="0" Style="{StaticResource BorderStyle}">
-            <sample:MessageView x:Name="Message"/>
+        <Border Grid.Column="0" Style="{StaticResource BorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="25"/>
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0">
+                    <settings:MessageView x:Name="Message"/>
+                    <Button 
+                        x:Name="ShowToast"
+                        Content="Show" 
+                        Height="20" 
+                        Width="50" 
+                        Click="Show_OnClick"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <Border Grid.Column="1" Grid.Row="0" Style="{StaticResource BorderStyle}">
-            <sample:ToastSettingsView x:Name="ToastSettings"/>
-        </Border>
+        <Border Grid.Column="1" Style="{StaticResource BorderStyle}">
+            <TabControl Background="LightBlue">
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Toast Settings" FontFamily="Consolas" FontWeight="Bold"/>
+                    </TabItem.Header>
+                    <settings:ToastSettingsView x:Name="ToastSettings"/>
+                </TabItem>
 
-        <Border Grid.Column="2" Grid.Row="0" Style="{StaticResource BorderStyle}">
-            <sample:ToasterSettingsView x:Name="ToasterSettings"/>
-        </Border>
+                <TabItem>
+                    <TabItem.Header>
+                        <TextBlock Text="Toaster Settings" FontFamily="Consolas" FontWeight="Bold"/>
+                    </TabItem.Header>
 
-        <Button x:Name="ShowToast" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
-                Content="Show" Height="20" Width="50" Click="Show_OnClick"/>
+                    <settings:ToasterSettingsView x:Name="ToasterSettings"/>
+                </TabItem>
+            </TabControl>
+        </Border>
     </Grid>
 </Window>

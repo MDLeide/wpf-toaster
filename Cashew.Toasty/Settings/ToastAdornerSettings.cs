@@ -1,7 +1,21 @@
-﻿namespace Cashew.Toasty.Config
+﻿using System;
+
+namespace Cashew.Toasty.Settings
 {
-    public class ToastSettings
+    [Serializable]
+    public class ToastAdornerSettings
     {
+        public ToastAdornerSettings() { }
+
+        public ToastAdornerSettings(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; set; }
+
+        #region Close
+
         /// <summary>
         /// True if the user can close the toast.
         /// </summary>
@@ -17,6 +31,10 @@
         /// </summary>
         public bool CloseAfterClickAction { get; set; }
 
+        #endregion
+
+        #region Lifetime
+
         /// <summary>
         /// How long the toast is displayed for, in milliseconds. 0 for infinite lifetime.
         /// </summary>
@@ -28,6 +46,11 @@
         /// <summary>
         /// True to dynamically calculate the toast's lifetime based on the contents of the message.
         /// </summary>
+
+        #endregion
+
+        #region Dynamic Lifetime
+
         public bool DynamicLifetime { get; set; }
         /// <summary>
         /// A time, in milliseconds, that will be added to the dynamic lifetime regardless of message length.
@@ -45,6 +68,10 @@
         /// Maximum number of milliseconds for dynamic lifetime.
         /// </summary>
         public int DynamicLifetimeMaximum { get; set; }
+        
+        #endregion
+
+        #region Leave
 
         /// <summary>
         /// How long, in milliseconds, the toast takes to leave the screen. The toast will
@@ -52,5 +79,24 @@
         /// 0 for instant removal.
         /// </summary>
         public int LeaveTime { get; set; }
+
+        #endregion
+
+        public ToastAdornerSettings Clone(string newName)
+        {
+            var settings = new ToastAdornerSettings(newName);
+            settings.CanUserClose = CanUserClose;
+            settings.CloseAfterClickAction = CloseAfterClickAction;
+            settings.CloseOnRightClick = CloseOnRightClick;
+            settings.DynamicLifetime = DynamicLifetime;
+            settings.RefreshLifetimeOnMouseOver = RefreshLifetimeOnMouseOver;
+            settings.DynamicLifetimeBase = DynamicLifetimeBase;
+            settings.DynamicLifetimeMaximum = DynamicLifetimeMaximum;
+            settings.DynamicLifetimeMillisecondsPerCharacter = DynamicLifetimeMillisecondsPerCharacter;
+            settings.DynamicLifetimeMinimum = DynamicLifetimeMinimum;
+            settings.LeaveTime = LeaveTime;
+            settings.Lifetime = Lifetime;
+            return settings;
+        }
     }
 }

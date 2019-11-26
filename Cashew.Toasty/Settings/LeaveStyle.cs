@@ -1,4 +1,4 @@
-﻿namespace Cashew.Toasty.Config
+﻿namespace Cashew.Toasty.Settings
 {
     public enum LeaveStyle
     {

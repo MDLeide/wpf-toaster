@@ -48,7 +48,9 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\LeaveStyle.cs" />
+    <Compile Include="Settings\EnterStyle.cs" />
+    <Compile Include="Settings\LeaveStyle.cs" />
+    <Compile Include="Settings\MoveStyle.cs" />
     <Compile Include="Defaults\DefaultSettings.cs" />
     <Compile Include="Defaults\DefaultToasterSettingsProvider.cs" />
     <Compile Include="Defaults\DefaultToastSettingsProvider.cs" />
@@ -56,13 +58,15 @@
     <Compile Include="Direction.cs" />
     <Compile Include="Location.cs" />
     <Compile Include="Presets\ToasterSettingsPresets.cs" />
+    <Compile Include="Settings\SavedSettings.cs" />
     <Compile Include="ToastAdorner.cs" />
     <Compile Include="Toaster.cs" />
-    <Compile Include="Config\ToastSettings.cs" />
+    <Compile Include="Settings\ToastAdornerSettings.cs" />
     <Compile Include="Toast.cs" />
     <Compile Include="ToasterManager.cs" />
-    <Compile Include="Config\ToasterSettings.cs" />
-    <Compile Include="Config\ToastTemplate.cs" />
+    <Compile Include="Settings\ToasterSettings.cs" />
+    <Compile Include="Settings\ToastTemplate.cs" />
+    <Compile Include="ToastQueueEntry.cs" />
     <Compile Include="ToastView.xaml.cs">
       <DependentUpon>ToastView.xaml</DependentUpon>
     </Compile>

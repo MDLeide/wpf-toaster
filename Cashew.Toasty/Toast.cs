@@ -1,291 +1,211 @@
-﻿//using System;
-//using System.Drawing;
-//using System.Drawing.Imaging;
-//using System.IO;
-//using System.Windows;
-//using System.Windows.Media;
-//using System.Windows.Media.Imaging;
-//using Cashew.Toasty.Config;
-//using Cashew.Toasty.Properties;
+﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Cashew.Toasty.Defaults;
+using Cashew.Toasty.Properties;
+using Cashew.Toasty.Settings;
 
-//namespace Cashew.Toasty
-//{
-//    //todo: choose toast location
-//    //todo: choose toast direction
+namespace Cashew.Toasty
+{
+    //todo: choose toast location
+    //todo: choose toast direction
 
-//    public static class Toast
-//    {
-//        public static Func<object, Window> DefaultGetWindowFromContextFunction { get; set; } = o => null;
+    public class ToastSettings
+    {
+        public ToastSettings()
+        {
+            GetInfoView = (t, m) => InfoTemplate?.GetToastView(t, m);
+            GetWarningView = (t, m) => WarningTemplate?.GetToastView(t, m);
+            GetSuccessView = (t, m) => SuccessTemplate?.GetToastView(t, m);
+            GetErrorView = (t, m) => ErrorTemplate?.GetToastView(t, m);
+        }
 
-//        /// <summary>
-//        /// A function which returns a <see cref="UIElement"/> used when rending an Info toast.
-//        /// </summary>
-//        public static Func<string, string, UIElement> GetInfoView { get; set; } =
-//            (t, m) => InfoTemplate?.GetToastView(t, m);
+        /// <summary>
+        /// A function which returns a <see cref="UIElement"/> used when rending an Info toast.
+        /// </summary>
+        public Func<string, string, UIElement> GetInfoView { get; set; } 
 
-//        /// <summary>
-//        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
-//        /// default layout for an Info toast when <see cref="GetInfoView"/> is not set.
-//        /// </summary>
-//        public static ToastTemplate InfoTemplate { get; set; } = Defaults.InfoTemplate;
+        /// <summary>
+        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// default layout for an Info toast when <see cref="GetInfoView"/> is not set.
+        /// </summary>
+        public ToastTemplate InfoTemplate { get; set; } =
+            DefaultSettings.DefaultInfoToastViewTemplate;
 
-//        /// <summary>
-//        /// A <see cref="ToastSettings"/> used to configure presentation details of an Info toast.
-//        /// </summary>
-//        public static ToastSettings InfoConfiguration { get; set; } = Defaults.InfoConfiguration;
-
-
-//        /// <summary>
-//        /// A function which returns a <see cref="UIElement"/> used when rending a Success toast.
-//        /// </summary>
-//        public static Func<string, string, UIElement> GetSuccessView { get; set; } =
-//            (t, m) => SuccessTemplate?.GetToastView(t, m);
-        
-//        /// <summary>
-//        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
-//        /// default layout for a Success toast when <see cref="GetSuccessView"/> is not set.
-//        /// </summary>
-//        public static ToastTemplate SuccessTemplate { get; set; } = Defaults.SuccessTemplate;
-
-//        /// <summary>
-//        /// A <see cref="ToastSettings"/> used to configure presentation details of a Success toast.
-//        /// </summary>
-//        public static ToastSettings SuccessConfiguration { get; set; } = Defaults.SuccessConfiguration;
+        /// <summary>
+        /// A <see cref="ToastSettings"/> used to configure presentation details of an Info toast.
+        /// </summary>
+        public ToastAdornerSettings InfoSettings { get; set; } =
+            DefaultSettings.DefaultInfoToastSettings;
 
 
-//        /// <summary>
-//        /// A function which returns a <see cref="UIElement"/> used when rending a Warning toast.
-//        /// </summary>
-//        public static Func<string, string, UIElement> GetWarningView { get; set; } =
-//            (t, m) => WarningTemplate?.GetToastView(t, m);
+        /// <summary>
+        /// A function which returns a <see cref="UIElement"/> used when rending a Success toast.
+        /// </summary>
+        public Func<string, string, UIElement> GetSuccessView { get; set; } 
 
-//        /// <summary>
-//        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
-//        /// default layout for an Warning toast when <see cref="GetWarningView"/> is not set.
-//        /// </summary>
-//        public static ToastTemplate WarningTemplate { get; set; } = Defaults.WarningTemplate;
+        /// <summary>
+        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// default layout for a Success toast when <see cref="GetSuccessView"/> is not set.
+        /// </summary>
+        public ToastTemplate SuccessTemplate { get; set; } =
+            DefaultSettings.DefaultSuccessToastViewTemplate;
 
-//        /// <summary>
-//        /// A <see cref="ToastSettings"/> used to configure presentation details of a Warning toast.
-//        /// </summary>
-//        public static ToastSettings WarningConfiguration { get; set; } = Defaults.WarningConfiguration;
-
-
-//        /// <summary>
-//        /// A function which returns a <see cref="UIElement"/> used when rending an Error toast.
-//        /// </summary>
-//        public static Func<string, string, UIElement> GetErrorView { get; set; } =
-//            (t, m) => ErrorTemplate?.GetToastView(t, m);
-
-//        /// <summary>
-//        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
-//        /// default layout for an Error toast when <see cref="GetErrorView"/> is not set.
-//        /// </summary>
-//        public static ToastTemplate ErrorTemplate { get; set; } = Defaults.ErrorTemplate;
-
-//        /// <summary>
-//        /// A <see cref="ToastSettings"/> used to configure presentation details of an Error toast.
-//        /// </summary>
-//        public static ToastSettings ErrorConfiguration { get; set; } = Defaults.ErrorConfiguration;
+        /// <summary>
+        /// A <see cref="ToastSettings"/> used to configure presentation details of a Success toast.
+        /// </summary>
+        public ToastAdornerSettings SuccessSettings { get; set; } =
+            DefaultSettings.DefaultSuccessToastSettings;
 
 
-//        #region Info
-        
-//        public static void Info(object context, string message, string title = null, Func<object, Window> getWindow = null)
-//        {
-//            if (getWindow == null)
-//                getWindow = DefaultGetWindowFromContextFunction;
+        /// <summary>
+        /// A function which returns a <see cref="UIElement"/> used when rending a Warning toast.
+        /// </summary>
+        public Func<string, string, UIElement> GetWarningView { get; set; } 
 
-//            Info(getWindow(context), message, title);
-//        }
+        /// <summary>
+        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// default layout for an Warning toast when <see cref="GetWarningView"/> is not set.
+        /// </summary>
+        public ToastTemplate WarningTemplate { get; set; } =
+            DefaultSettings.DefaultWarningToastViewTemplate;
 
-//        public static void Info(Window window, string message, string title = null)
-//        {
-//            ToasterManager.Show(
-//                title ?? string.Empty,
-//                message,
-//                window,
-//                InfoConfiguration,
-//                GetInfoView(title ?? string.Empty, message));
-//        }
+        /// <summary>
+        /// A <see cref="ToastSettings"/> used to configure presentation details of a Warning toast.
+        /// </summary>
+        public ToastAdornerSettings WarningSettings { get; set; } =
+            DefaultSettings.DefaultWarningToastSettings;
 
-//        #endregion // Info
 
-//        #region Success
+        /// <summary>
+        /// A function which returns a <see cref="UIElement"/> used when rending an Error toast.
+        /// </summary>
+        public Func<string, string, UIElement> GetErrorView { get; set; } 
 
-//        public static void Success(object context, string message, string title = null, Func<object, Window> getWindow = null)
-//        {
-//            if (getWindow == null)
-//                getWindow = DefaultGetWindowFromContextFunction;
+        /// <summary>
+        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// default layout for an Error toast when <see cref="GetErrorView"/> is not set.
+        /// </summary>
+        public ToastTemplate ErrorTemplate { get; set; } =
+            DefaultSettings.DefaultErrorToastViewTemplate;
 
-//            Success(getWindow(context), message, title);
-//        }
+        /// <summary>
+        /// A <see cref="ToastSettings"/> used to configure presentation details of an Error toast.
+        /// </summary>
+        public ToastAdornerSettings ErrorSettings { get; set; } =
+            DefaultSettings.DefaultErrorToastSettings;
+    }
 
-//        public static void Success(Window window, string message, string title = null)
-//        {
-//            ToasterManager.Show(
-//                title ?? string.Empty,
-//                message,
-//                window,
-//                SuccessConfiguration,
-//                GetSuccessView(title ?? string.Empty, message));
-//        }
+    public static class Toast
+    {
+        static ToasterManager ToasterManager { get; set; } = new ToasterManager(ToasterSettings);
 
-//        #endregion // Success
+        public static Func<object, Window> DefaultGetWindowFromContextFunction { get; set; } = o => null;
 
-//        #region Error
+        static ToasterSettings _toasterSettings = Cashew.Toasty.Defaults.DefaultSettings.DefaultToasterSettings;
+        public static ToasterSettings ToasterSettings
+        {
+            get { return _toasterSettings; }
+            set
+            {
+                _toasterSettings = value;
+                ToasterManager = new ToasterManager(value);
+            }
+        }
 
-//        public static void Error(object context, string message, string title = null, Func<object, Window> getWindow = null)
-//        {
-//            if (getWindow == null)
-//                getWindow = DefaultGetWindowFromContextFunction;
+        public static ToastSettings Settings { get; } = new ToastSettings();
 
-//            Error(getWindow(context), message, title);
-//        }
 
-//        public static void Error(Window window, string message, string title = null)
-//        {
-//            ToasterManager.Show(
-//                title ?? string.Empty,
-//                message,
-//                window,
-//                ErrorConfiguration,
-//                GetErrorView(title ?? string.Empty, message));
-//        }
+        #region Info
 
-//        #endregion // Error
+        public static void Info(object context, string message, string title = null, Func<object, Window> getWindow = null)
+        {
+            if (getWindow == null)
+                getWindow = DefaultGetWindowFromContextFunction;
 
-//        #region Warning
+            Info(getWindow(context), message, title);
+        }
 
-//        public static void Warning(object context, string title, string message = null, Func<object, Window> getWindow = null)
-//        {
-//            if (getWindow == null)
-//                getWindow = DefaultGetWindowFromContextFunction;
+        public static void Info(Window window, string message, string title = null)
+        {
+            ToasterManager.Show(
+                title ?? string.Empty,
+                message,
+                window,
+                Settings.InfoSettings,
+                Settings.GetInfoView(title ?? string.Empty, message));
+        }
 
-//            Warning(getWindow(context), message, title);
-//        }
-        
-//        public static void Warning(Window window, string message, string title = null)
-//        {
-//            ToasterManager.Show(
-//                title ?? string.Empty,
-//                message,
-//                window,
-//                ErrorConfiguration,
-//                GetErrorView(title ?? string.Empty, message));
-//        }
+        #endregion // Info
 
-//        #endregion // Warning
+        #region Success
 
-//        static class Defaults
-//        {
-//            public static ToastTemplate InfoTemplate { get; } = GetInfoTemplate();
-//            public static ToastSettings InfoConfiguration { get; } = GetBaseConfiguration();
+        public static void Success(object context, string message, string title = null, Func<object, Window> getWindow = null)
+        {
+            if (getWindow == null)
+                getWindow = DefaultGetWindowFromContextFunction;
 
-//            public static ToastTemplate SuccessTemplate { get; } = GetSuccessTemplate();
-//            public static ToastSettings SuccessConfiguration { get; } = GetBaseConfiguration();
+            Success(getWindow(context), message, title);
+        }
 
-//            public static ToastTemplate WarningTemplate { get; } = GetWarningTemplate();
-//            public static ToastSettings WarningConfiguration { get; } = GetBaseConfiguration();
+        public static void Success(Window window, string message, string title = null)
+        {
+            ToasterManager.Show(
+                title ?? string.Empty,
+                message,
+                window,
+                Settings.SuccessSettings,
+                Settings.GetSuccessView(title ?? string.Empty, message));
+        }
 
-//            public static ToastTemplate ErrorTemplate { get; } = GetErrorTemplate();
-//            public static ToastSettings ErrorConfiguration { get; } = GetBaseConfiguration();
+        #endregion // Success
 
-//            static BitmapImage ImageFromBitmap(Bitmap bitmap)
-//            {
-//                using (var mem = new MemoryStream())
-//                {
-//                    bitmap.Save(mem, ImageFormat.Png);
-//                    mem.Position = 0;
+        #region Error
 
-//                    var image = new BitmapImage();
-//                    image.BeginInit();
-//                    image.StreamSource = mem;
-//                    image.CacheOption = BitmapCacheOption.OnLoad;
-//                    image.EndInit();
-//                    image.Freeze();
-//                    return image;
-//                }
-//            }
+        public static void Error(object context, string message, string title = null, Func<object, Window> getWindow = null)
+        {
+            if (getWindow == null)
+                getWindow = DefaultGetWindowFromContextFunction;
 
-//            static ToastTemplate GetInfoTemplate()
-//            {
-//                var template = GetBaseTemplate();
-//                template.ImageSource = ImageFromBitmap(Resources.final_info_icon_white);
-//                return template;
-//            }
+            Error(getWindow(context), message, title);
+        }
 
-//            static ToastTemplate GetSuccessTemplate()
-//            {
-//                var template = GetBaseTemplate();
-//                template.ImageSource = ImageFromBitmap(Resources.final_success_icon_white);
-//                return template;
-//            }
+        public static void Error(Window window, string message, string title = null)
+        {
+            ToasterManager.Show(
+                title ?? string.Empty,
+                message,
+                window,
+                Settings.ErrorSettings,
+                Settings.GetErrorView(title ?? string.Empty, message));
+        }
 
-//            static ToastTemplate GetWarningTemplate()
-//            {
-//                var template = GetBaseTemplate();
-//                template.ImageSource = ImageFromBitmap(Resources.final_warning_icon_white);
-//                return template;
-//            }
+        #endregion // Error
 
-//            static ToastTemplate GetErrorTemplate()
-//            {
-//                var template = GetBaseTemplate();
-//                template.ImageSource = ImageFromBitmap(Resources.final_error_icon_white);
-//                return template;
-//            }
+        #region Warning
 
-//            static ToastSettings GetBaseConfiguration()
-//            {
-//                var config = new ToastSettings();
-//                config.CanUserClose = true;
-//                config.CloseOnRightClick = true;
-//                config.CloseAfterClickAction = true;
-//                config.Lifetime = 2500;
-//                config.RefreshLifetimeOnMouseOver = true;
-//                config.LeaveTime = 500;
-//                return config;
-//            }
+        public static void Warning(object context, string title, string message = null, Func<object, Window> getWindow = null)
+        {
+            if (getWindow == null)
+                getWindow = DefaultGetWindowFromContextFunction;
 
-//            static ToastTemplate GetBaseTemplate()
-//            {
-//                var template = new ToastTemplate();
+            Warning(getWindow(context), message, title);
+        }
 
-//                template.ImageSize = 25;
+        public static void Warning(Window window, string message, string title = null)
+        {
+            ToasterManager.Show(
+                title ?? string.Empty,
+                message,
+                window,
+                Settings.ErrorSettings,
+                Settings.GetErrorView(title ?? string.Empty, message));
+        }
 
-//                template.ShowCloseButton = true;
-//                template.CloseButtonStrokeBrush = new SolidColorBrush(Colors.White);
-//                template.CloseButtonFillBrush = new SolidColorBrush(Colors.White);
-
-//                template.AutoWidth = false;
-//                template.AutoHeight = true;
-//                template.Width = 325;
-
-//                template.TitleBackgroundBrush = new SolidColorBrush(Colors.Green);
-//                template.TitleForegroundBrush = new SolidColorBrush(Colors.White);
-//                template.TitleFontSize = 15;
-//                template.TitleFontWeight = FontWeights.Bold;
-//                template.TitleMargin = new Thickness(8, 8, 8, 4);
-//                template.TitleVerticalAlignment = VerticalAlignment.Center;
-//                template.TitleHorizontalAlignment = HorizontalAlignment.Left;
-
-//                template.MessageBackgroundBrush = new SolidColorBrush(Colors.Green);
-//                template.MessageForegroundBrush = new SolidColorBrush(Colors.White);
-//                template.MessageFontSize = 12;
-//                template.MessageFontWeight = FontWeights.Normal;
-//                template.MessageMargin = new Thickness(8, 4, 8, 8);
-//                template.MessageVerticalAlignment = VerticalAlignment.Center;
-//                template.MessageHorizontalAlignment = HorizontalAlignment.Left;
-
-//                template.InnerBorderThickness = new Thickness(0);
-//                template.InnerBorderBrush = new SolidColorBrush(Colors.WhiteSmoke);
-//                template.CornerRadius = 3;
-
-//                template.Opacity = 1;
-
-//                return template;
-//            }
-//        }
-//    }
-//}
+        #endregion // Warning
+    }
+}

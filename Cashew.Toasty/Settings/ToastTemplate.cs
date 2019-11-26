@@ -1,26 +1,40 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace Cashew.Toasty.Config
+namespace Cashew.Toasty.Settings
 {
     /// <summary>
     /// Provides properties that can be used to configure the default <see cref="ToastView"/>.
     /// </summary>
     public class ToastTemplate
     {
-        public bool ShowCloseButton { get; set; }
+        public double Opacity { get; set; }
 
+        #region Close Button
+
+        public bool ShowCloseButton { get; set; }
         public Brush CloseButtonStrokeBrush { get; set; }
         public Brush CloseButtonFillBrush { get; set; }
+
+        #endregion
+
+        #region Dimensions
 
         public bool AutoWidth { get; set; }
         public double Width { get; set; }
         public bool AutoHeight { get; set; }
         public double Height { get; set; }
-        public double Opacity { get; set; }
+
+        #endregion
+
+        #region Image
 
         public ImageSource ImageSource { get; set; }
         public double ImageSize { get; set; }
+
+        #endregion
+
+        #region Title
 
         public Brush TitleBackgroundBrush { get; set; }
         public Brush TitleForegroundBrush { get; set; }
@@ -30,6 +44,10 @@ namespace Cashew.Toasty.Config
         public VerticalAlignment TitleVerticalAlignment { get; set; }
         public HorizontalAlignment TitleHorizontalAlignment { get; set; }
 
+        #endregion
+
+        #region Message
+
         public Brush MessageBackgroundBrush { get; set; }
         public Brush MessageForegroundBrush { get; set; }
         public double MessageFontSize { get; set; }
@@ -38,10 +56,15 @@ namespace Cashew.Toasty.Config
         public VerticalAlignment MessageVerticalAlignment { get; set; }
         public HorizontalAlignment MessageHorizontalAlignment { get; set; }
 
+        #endregion
+
+        #region Border
+
         public Thickness InnerBorderThickness { get; set; }
         public Brush InnerBorderBrush { get; set; }
         public double CornerRadius { get; set; }
 
+        #endregion
 
         public ToastView GetToastView(string title, string message)
         {
