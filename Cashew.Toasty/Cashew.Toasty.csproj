@@ -59,13 +59,14 @@
     <Compile Include="Location.cs" />
     <Compile Include="Presets\ToasterSettingsPresets.cs" />
     <Compile Include="Settings\SavedSettings.cs" />
+    <Compile Include="Settings\StandardImages.cs" />
     <Compile Include="ToastAdorner.cs" />
     <Compile Include="Toaster.cs" />
     <Compile Include="Settings\ToastAdornerSettings.cs" />
     <Compile Include="Toast.cs" />
     <Compile Include="ToasterManager.cs" />
     <Compile Include="Settings\ToasterSettings.cs" />
-    <Compile Include="Settings\ToastTemplate.cs" />
+    <Compile Include="Settings\ToastViewTemplate.cs" />
     <Compile Include="ToastQueueEntry.cs" />
     <Compile Include="ToastView.xaml.cs">
       <DependentUpon>ToastView.xaml</DependentUpon>
@@ -88,6 +89,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -95,22 +97,20 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\final-error-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\final-info-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\final-success-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\final-warning-icon-white.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Page Include="ToastView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\final-error-icon-black.png" />
+    <Resource Include="Resources\final-error-icon-white.png" />
+    <Resource Include="Resources\final-info-icon-black.png" />
+    <Resource Include="Resources\final-info-icon-white.png" />
+    <Resource Include="Resources\final-success-icon-black.png" />
+    <Resource Include="Resources\final-success-icon-white.png" />
+    <Resource Include="Resources\final-warning-icon-black.png" />
+    <Resource Include="Resources\final-warning-icon-white.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

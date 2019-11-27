@@ -63,9 +63,9 @@ namespace Cashew.Toasty.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap final_error_icon_white {
+        internal static System.Drawing.Bitmap error_black {
             get {
-                object obj = ResourceManager.GetObject("final_error_icon_white", resourceCulture);
+                object obj = ResourceManager.GetObject("error_black", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -73,9 +73,9 @@ namespace Cashew.Toasty.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap final_info_icon_white {
+        internal static System.Drawing.Bitmap error_white {
             get {
-                object obj = ResourceManager.GetObject("final_info_icon_white", resourceCulture);
+                object obj = ResourceManager.GetObject("error_white", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -83,9 +83,9 @@ namespace Cashew.Toasty.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap final_success_icon_white {
+        internal static System.Drawing.Bitmap info_black {
             get {
-                object obj = ResourceManager.GetObject("final_success_icon_white", resourceCulture);
+                object obj = ResourceManager.GetObject("info_black", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -93,9 +93,49 @@ namespace Cashew.Toasty.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap final_warning_icon_white {
+        internal static System.Drawing.Bitmap info_white {
             get {
-                object obj = ResourceManager.GetObject("final_warning_icon_white", resourceCulture);
+                object obj = ResourceManager.GetObject("info_white", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap success_black {
+            get {
+                object obj = ResourceManager.GetObject("success_black", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap success_white {
+            get {
+                object obj = ResourceManager.GetObject("success_white", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap warning_black {
+            get {
+                object obj = ResourceManager.GetObject("warning_black", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap warning_white {
+            get {
+                object obj = ResourceManager.GetObject("warning_white", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

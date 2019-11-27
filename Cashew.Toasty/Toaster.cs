@@ -91,9 +91,9 @@ namespace Cashew.Toasty
             }
         }
 
-        public void Show(
-            string title, 
-            string message, 
+        public ToastAdorner Show(
+            string message,
+            string title,
             ToastAdornerSettings toastSettings = null,
             UIElement toastView = null,
             Action clickAction = null)
@@ -107,8 +107,13 @@ namespace Cashew.Toasty
             if (!toastSettings.CanUserClose && toastSettings.Lifetime <= 0)
                 throw new InvalidOperationException("Toast is configured to disallow user closing and to never expire.");
 
-            var adorner = new ToastAdorner(ElementToAdorn, toastView ?? _getDefaultView(title, message));
-
+            ToastAdorner adorner = null;
+            void CreateAdorner()
+            {
+                adorner = new ToastAdorner(ElementToAdorn, toastView ?? _getDefaultView(title, message));
+            }
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate) CreateAdorner);
+            
             if (QueueToasts)
             {
                 AddToQueue(adorner, toastSettings, clickAction, title, message);
@@ -119,6 +124,8 @@ namespace Cashew.Toasty
                 Configure(adorner, toastSettings, clickAction, title, message);
                 Add(adorner);
             }
+
+            return adorner;
         }
 
 
@@ -242,14 +249,14 @@ namespace Cashew.Toasty
 
             if (lifetime < settings.DynamicLifetimeMinimum)
                 lifetime = settings.DynamicLifetimeMinimum;
-            if (lifetime > settings.DynamicLifetimeMaximum)
+            if (settings.DynamicLifetimeMaximum > 0 && lifetime > settings.DynamicLifetimeMaximum)
                 lifetime = settings.DynamicLifetimeMaximum;
             return lifetime;
         }
 
         void ConfigureRemove(ToastAdorner adorner, ToastAdornerSettings settings, int lifetime)
         {
-            if (settings.Lifetime <= 0)
+            if (lifetime <= 0)
                 return;
 
             var lifetimeTimer = new Timer(lifetime);
@@ -833,18 +840,25 @@ namespace Cashew.Toasty
 
         AdornerLayer GetWindowAdornerLayer(Window window, out UIElement uiElement)
         {
-            uiElement = window;
-            var layer = AdornerLayer.GetAdornerLayer(window);
-            if (layer != null)
-                return layer;
+            UIElement element = window;
+            AdornerLayer layer = null;
 
-            if (window.Content is UIElement ui)
+            void GetWindowLayer()
             {
-                uiElement = ui;
-                if (ui is Visual v)
-                    layer = AdornerLayer.GetAdornerLayer(v);
+                layer = AdornerLayer.GetAdornerLayer(window);
+                if (layer != null)
+                    return;
+
+                if (window.Content is UIElement ui)
+                {
+                    element = ui;
+                    if (ui is Visual v)
+                        layer = AdornerLayer.GetAdornerLayer(v);
+                }
             }
 
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate) GetWindowLayer);
+            uiElement = element;
             return layer;
         }
 

@@ -66,15 +66,15 @@ namespace Cashew.Toasty.Defaults
 
         #region Default Template
 
-        static ToastTemplate _defaultToastViewTemplate = DefaultToastViewTemplateProvider.DefaultToastTemplate;
-        public static ToastTemplate DefaultToastViewTemplate
+        static ToastViewTemplate _defaultToastViewTemplate = DefaultToastViewTemplateProvider.DefaultToastTemplate;
+        public static ToastViewTemplate DefaultToastViewTemplate
         {
             get => _defaultToastViewTemplate;
             set => _defaultToastViewTemplate = value ?? throw new ArgumentNullException();
         }
 
         static Func<string, string, UIElement> _getDefaultToastViewFunc =
-            (title, message) => DefaultToastViewTemplate.GetToastView(title, message);
+            (title, message) => DefaultToastViewTemplate.GetToastView(message, title);
         public static Func<string, string, UIElement> GetDefaultToastViewFunc
         {
             get => _getDefaultToastViewFunc;
@@ -85,15 +85,15 @@ namespace Cashew.Toasty.Defaults
 
         #region Default Info Template
 
-        static ToastTemplate _defaultInfoToastViewTemplate = DefaultToastViewTemplateProvider.DefaultInfoTemplate;
-        public static ToastTemplate DefaultInfoToastViewTemplate
+        static ToastViewTemplate _defaultInfoToastViewTemplate = DefaultToastViewTemplateProvider.DefaultInfoTemplate;
+        public static ToastViewTemplate DefaultInfoToastViewTemplate
         {
             get => _defaultInfoToastViewTemplate;
             set => _defaultInfoToastViewTemplate = value ?? throw new ArgumentNullException();
         }
 
         static Func<string, string, UIElement> _getDefaultInfoToastViewFunc =
-            (title, message) => DefaultInfoToastViewTemplate.GetToastView(title, message);
+            (title, message) => DefaultInfoToastViewTemplate.GetToastView(message, title);
         public static Func<string, string, UIElement> GetDefaultInfoToastViewFunc
         {
             get => _getDefaultInfoToastViewFunc;
@@ -104,15 +104,15 @@ namespace Cashew.Toasty.Defaults
 
         #region Default Warning Template
 
-        static ToastTemplate _defaultWarningToastViewTemplate = DefaultToastViewTemplateProvider.DefaultWarningTemplate;
-        public static ToastTemplate DefaultWarningToastViewTemplate
+        static ToastViewTemplate _defaultWarningToastViewTemplate = DefaultToastViewTemplateProvider.DefaultWarningTemplate;
+        public static ToastViewTemplate DefaultWarningToastViewTemplate
         {
             get => _defaultWarningToastViewTemplate;
             set => _defaultWarningToastViewTemplate = value ?? throw new ArgumentNullException();
         }
 
         static Func<string, string, UIElement> _getDefaultWarningToastViewFunc =
-            (title, message) => DefaultWarningToastViewTemplate.GetToastView(title, message);
+            (title, message) => DefaultWarningToastViewTemplate.GetToastView(message, title);
         public static Func<string, string, UIElement> GetDefaultWarningToastViewFunc
         {
             get => _getDefaultWarningToastViewFunc;
@@ -123,15 +123,15 @@ namespace Cashew.Toasty.Defaults
 
         #region Default Success Template
 
-        static ToastTemplate _defaultSuccessToastViewTemplate = DefaultToastViewTemplateProvider.DefaultSuccessTemplate;
-        public static ToastTemplate DefaultSuccessToastViewTemplate
+        static ToastViewTemplate _defaultSuccessToastViewTemplate = DefaultToastViewTemplateProvider.DefaultSuccessTemplate;
+        public static ToastViewTemplate DefaultSuccessToastViewTemplate
         {
             get => _defaultSuccessToastViewTemplate;
             set => _defaultSuccessToastViewTemplate = value ?? throw new ArgumentNullException();
         }
 
         static Func<string, string, UIElement> _getDefaultSuccessToastViewFunc =
-            (title, message) => DefaultSuccessToastViewTemplate.GetToastView(title, message);
+            (title, message) => DefaultSuccessToastViewTemplate.GetToastView(message, title);
         public static Func<string, string, UIElement> GetDefaultSuccessToastViewFunc
         {
             get => _getDefaultSuccessToastViewFunc;
@@ -142,15 +142,15 @@ namespace Cashew.Toasty.Defaults
 
         #region Default Error Template
 
-        static ToastTemplate _defaultErrorToastViewTemplate = DefaultToastViewTemplateProvider.DefaultErrorTemplate;
-        public static ToastTemplate DefaultErrorToastViewTemplate
+        static ToastViewTemplate _defaultErrorToastViewTemplate = DefaultToastViewTemplateProvider.DefaultErrorTemplate;
+        public static ToastViewTemplate DefaultErrorToastViewTemplate
         {
             get => _defaultErrorToastViewTemplate;
             set => _defaultErrorToastViewTemplate = value ?? throw new ArgumentNullException();
         }
 
         static Func<string, string, UIElement> _getDefaultErrorToastViewFunc =
-            (title, message) => DefaultErrorToastViewTemplate.GetToastView(title, message);
+            (title, message) => DefaultErrorToastViewTemplate.GetToastView(message, title);
         public static Func<string, string, UIElement> GetDefaultErrorToastViewFunc
         {
             get => _getDefaultErrorToastViewFunc;

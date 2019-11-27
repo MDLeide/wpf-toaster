@@ -15,44 +15,54 @@ namespace Cashew.Toasty.Defaults
 {
     static class DefaultToastViewTemplateProvider
     {
-        public static ToastTemplate DefaultToastTemplate { get; } = GetInfoTemplate();
-        public static ToastTemplate DefaultInfoTemplate { get; } = GetInfoTemplate();
-        public static ToastTemplate DefaultSuccessTemplate { get; } = GetSuccessTemplate();
-        public static ToastTemplate DefaultWarningTemplate { get; } = GetWarningTemplate();
-        public static ToastTemplate DefaultErrorTemplate { get; } = GetErrorTemplate();
+        public static ToastViewTemplate DefaultToastTemplate { get; } = GetInfoTemplate();
+        public static ToastViewTemplate DefaultInfoTemplate { get; } = GetInfoTemplate();
+        public static ToastViewTemplate DefaultSuccessTemplate { get; } = GetSuccessTemplate();
+        public static ToastViewTemplate DefaultWarningTemplate { get; } = GetWarningTemplate();
+        public static ToastViewTemplate DefaultErrorTemplate { get; } = GetErrorTemplate();
 
 
-        static ToastTemplate GetInfoTemplate()
+        static ToastViewTemplate GetInfoTemplate()
         {
             var template = GetBaseTemplate();
-            template.ImageSource = ImageFromBitmap(Resources.final_info_icon_white);
+            template.StandardImage = StandardImages.InfoWhite;
+            template.MessageBackgroundBrush = new SolidColorBrush(Colors.DarkSlateGray);
+            template.TitleBackgroundBrush = new SolidColorBrush(Colors.DarkSlateGray);
             return template;
         }
 
-        static ToastTemplate GetSuccessTemplate()
+        static ToastViewTemplate GetSuccessTemplate()
         {
             var template = GetBaseTemplate();
-            template.ImageSource = ImageFromBitmap(Resources.final_success_icon_white);
+            template.StandardImage = StandardImages.SuccessWhite;
+            template.MessageBackgroundBrush = new SolidColorBrush(Colors.Green);
+            template.TitleBackgroundBrush = new SolidColorBrush(Colors.Green);
             return template;
         }
 
-        static ToastTemplate GetWarningTemplate()
+        static ToastViewTemplate GetWarningTemplate()
         {
             var template = GetBaseTemplate();
-            template.ImageSource = ImageFromBitmap(Resources.final_warning_icon_white);
+            template.StandardImage = StandardImages.WarningBlack;
+            template.MessageBackgroundBrush = new SolidColorBrush(Colors.Yellow);
+            template.TitleBackgroundBrush = new SolidColorBrush(Colors.Yellow);
+            template.MessageForegroundBrush = new SolidColorBrush(Colors.Black);
+            template.TitleForegroundBrush = new SolidColorBrush(Colors.Black);
             return template;
         }
 
-        static ToastTemplate GetErrorTemplate()
+        static ToastViewTemplate GetErrorTemplate()
         {
             var template = GetBaseTemplate();
-            template.ImageSource = ImageFromBitmap(Resources.final_error_icon_white);
+            template.StandardImage = StandardImages.ErrorWhite;
+            template.TitleBackgroundBrush = new SolidColorBrush(Colors.Red);
+            template.MessageBackgroundBrush = new SolidColorBrush(Colors.Red);
             return template;
         }
         
-        static ToastTemplate GetBaseTemplate()
+        static ToastViewTemplate GetBaseTemplate()
         {
-            var template = new ToastTemplate();
+            var template = new ToastViewTemplate();
 
             template.ImageSize = 25;
 

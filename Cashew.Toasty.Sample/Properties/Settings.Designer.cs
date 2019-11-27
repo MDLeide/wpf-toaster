@@ -46,5 +46,41 @@ namespace Cashew.Toasty.Sample.Properties {
                 this["toasterSettingsName"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string title {
+            get {
+                return ((string)(this["title"]));
+            }
+            set {
+                this["title"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string message {
+            get {
+                return ((string)(this["message"]));
+            }
+            set {
+                this["message"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string type {
+            get {
+                return ((string)(this["type"]));
+            }
+            set {
+                this["type"] = value;
+            }
+        }
     }
 }

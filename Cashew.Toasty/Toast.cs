@@ -18,10 +18,10 @@ namespace Cashew.Toasty
     {
         public ToastSettings()
         {
-            GetInfoView = (t, m) => InfoTemplate?.GetToastView(t, m);
-            GetWarningView = (t, m) => WarningTemplate?.GetToastView(t, m);
-            GetSuccessView = (t, m) => SuccessTemplate?.GetToastView(t, m);
-            GetErrorView = (t, m) => ErrorTemplate?.GetToastView(t, m);
+            GetInfoView = (m, t) => InfoTemplate?.GetToastView(m, t);
+            GetWarningView = (m, t) => WarningTemplate?.GetToastView(m, t);
+            GetSuccessView = (m, t) => SuccessTemplate?.GetToastView(m, t);
+            GetErrorView = (m, t) => ErrorTemplate?.GetToastView(m, t);
         }
 
         /// <summary>
@@ -30,10 +30,10 @@ namespace Cashew.Toasty
         public Func<string, string, UIElement> GetInfoView { get; set; } 
 
         /// <summary>
-        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// A <see cref="ToastViewTemplate"/> used to generate a <see cref="UIElement"/> with the
         /// default layout for an Info toast when <see cref="GetInfoView"/> is not set.
         /// </summary>
-        public ToastTemplate InfoTemplate { get; set; } =
+        public ToastViewTemplate InfoTemplate { get; set; } =
             DefaultSettings.DefaultInfoToastViewTemplate;
 
         /// <summary>
@@ -49,10 +49,10 @@ namespace Cashew.Toasty
         public Func<string, string, UIElement> GetSuccessView { get; set; } 
 
         /// <summary>
-        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// A <see cref="ToastViewTemplate"/> used to generate a <see cref="UIElement"/> with the
         /// default layout for a Success toast when <see cref="GetSuccessView"/> is not set.
         /// </summary>
-        public ToastTemplate SuccessTemplate { get; set; } =
+        public ToastViewTemplate SuccessTemplate { get; set; } =
             DefaultSettings.DefaultSuccessToastViewTemplate;
 
         /// <summary>
@@ -68,10 +68,10 @@ namespace Cashew.Toasty
         public Func<string, string, UIElement> GetWarningView { get; set; } 
 
         /// <summary>
-        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// A <see cref="ToastViewTemplate"/> used to generate a <see cref="UIElement"/> with the
         /// default layout for an Warning toast when <see cref="GetWarningView"/> is not set.
         /// </summary>
-        public ToastTemplate WarningTemplate { get; set; } =
+        public ToastViewTemplate WarningTemplate { get; set; } =
             DefaultSettings.DefaultWarningToastViewTemplate;
 
         /// <summary>
@@ -87,10 +87,10 @@ namespace Cashew.Toasty
         public Func<string, string, UIElement> GetErrorView { get; set; } 
 
         /// <summary>
-        /// A <see cref="ToastTemplate"/> used to generate a <see cref="UIElement"/> with the
+        /// A <see cref="ToastViewTemplate"/> used to generate a <see cref="UIElement"/> with the
         /// default layout for an Error toast when <see cref="GetErrorView"/> is not set.
         /// </summary>
-        public ToastTemplate ErrorTemplate { get; set; } =
+        public ToastViewTemplate ErrorTemplate { get; set; } =
             DefaultSettings.DefaultErrorToastViewTemplate;
 
         /// <summary>
@@ -132,12 +132,11 @@ namespace Cashew.Toasty
 
         public static void Info(Window window, string message, string title = null)
         {
-            ToasterManager.Show(
-                title ?? string.Empty,
+            Show(
                 message,
+                title,
                 window,
-                Settings.InfoSettings,
-                Settings.GetInfoView(title ?? string.Empty, message));
+                Settings.InfoSettings, GetUiElement(message, title, Settings.GetInfoView));
         }
 
         #endregion // Info
@@ -154,12 +153,11 @@ namespace Cashew.Toasty
 
         public static void Success(Window window, string message, string title = null)
         {
-            ToasterManager.Show(
-                title ?? string.Empty,
+            Show(
                 message,
+                title,
                 window,
-                Settings.SuccessSettings,
-                Settings.GetSuccessView(title ?? string.Empty, message));
+                Settings.SuccessSettings, GetUiElement(message, title, Settings.GetSuccessView));
         }
 
         #endregion // Success
@@ -176,12 +174,11 @@ namespace Cashew.Toasty
 
         public static void Error(Window window, string message, string title = null)
         {
-            ToasterManager.Show(
-                title ?? string.Empty,
+            Show(
                 message,
+                title,
                 window,
-                Settings.ErrorSettings,
-                Settings.GetErrorView(title ?? string.Empty, message));
+                Settings.ErrorSettings, GetUiElement(message, title, Settings.GetErrorView));
         }
 
         #endregion // Error
@@ -198,14 +195,46 @@ namespace Cashew.Toasty
 
         public static void Warning(Window window, string message, string title = null)
         {
-            ToasterManager.Show(
-                title ?? string.Empty,
+            Show(
                 message,
+                title,
                 window,
-                Settings.ErrorSettings,
-                Settings.GetErrorView(title ?? string.Empty, message));
+                Settings.WarningSettings, GetUiElement(message, title, Settings.GetWarningView));
         }
 
         #endregion // Warning
+
+        static void Show(
+            string message, 
+            string title, 
+            Window window, 
+            ToastAdornerSettings settings,
+            UIElement uiElement)
+        {
+            var adorner = ToasterManager.Show(
+                message ?? string.Empty,
+                title ?? string.Empty,
+                window,
+                settings, 
+                uiElement);
+
+            if (adorner.ToastView is ToastView tv)
+                tv.CloseButtonClicked += (s, e) => adorner.RequestClose();
+        }
+
+        delegate void ActionDelegate();
+
+        static UIElement GetUiElement(string message, string title, Func<string, string, UIElement> func)
+        {
+            UIElement element = null;
+
+            void GetElement()
+            {
+                element = func(message, title);
+            }
+
+            Application.Current?.Dispatcher?.Invoke((ActionDelegate)GetElement);
+            return element;
+        }
     }
 }

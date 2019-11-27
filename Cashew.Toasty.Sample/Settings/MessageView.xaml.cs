@@ -10,19 +10,25 @@ namespace Cashew.Toasty.Sample.Settings
         public MessageView()
         {
             InitializeComponent();
-            Types.Items.Add("Custom");
-            Types.Items.Add("Info");
-            Types.Items.Add("Success");
-            Types.Items.Add("Warning");
-            Types.Items.Add("Error");
-            Types.SelectedIndex = 0;
+            
 
-            ToastTitle.Text = "Sample Title";
-            ToastMessage.Text = "Sample Message";
+            ToastTitle.Text = string.IsNullOrWhiteSpace(Properties.Settings.Default.title) ? "Sample Title" : Properties.Settings.Default.title;
+            ToastMessage.Text = string.IsNullOrWhiteSpace(Properties.Settings.Default.message) ? "Sample Message" : Properties.Settings.Default.message;
+
+            ToastTitle.TextChanged += (s, e) =>
+            {
+                Properties.Settings.Default.title = ToastTitle.Text;
+                Properties.Settings.Default.Save();
+            };
+
+            ToastMessage.TextChanged += (s, e) =>
+            {
+                Properties.Settings.Default.message = ToastMessage.Text;
+                Properties.Settings.Default.Save();
+            };
         }
 
         public string Title => ToastTitle.Text;
         public string Message => ToastMessage.Text;
-        public string SelectedType => (string) Types.SelectedItem;
     }
 }

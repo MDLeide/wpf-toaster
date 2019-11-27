@@ -10,9 +10,6 @@ using Cashew.Toasty.Settings;
 
 namespace Cashew.Toasty
 {
-    // todo: synch thread access
-    // todo: test element to adorn margins
-
     public class ToasterManager
     {
         readonly ToasterSettings _settings;
@@ -29,10 +26,10 @@ namespace Cashew.Toasty
         }
 
 
-        public void Show(
-            string title, 
+        public ToastAdorner Show(
             string message,
-            Window window, 
+            string title,
+            Window window,
             ToastAdornerSettings toastSettings = null,
             UIElement toastView = null,
             Action clickAction = null)
@@ -43,7 +40,7 @@ namespace Cashew.Toasty
                 toaster.IsEmpty += (s, e) => _toasters.Remove(window);
                 _toasters.Add(window, toaster);
             }
-            _toasters[window].Show(title, message, toastSettings, toastView, clickAction);
+            return _toasters[window].Show(message, title, toastSettings, toastView, clickAction);
         }
 
         public void RegisterWindowToaster(Toaster toaster, bool removeWhenEmpty = false)

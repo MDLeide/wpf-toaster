@@ -32,12 +32,21 @@
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0">
                     <settings:MessageView x:Name="Message"/>
+                    <Label Content="Type" Margin="10,0"/>
+                    <ComboBox x:Name="Types" Margin="10,0,10,10"/>
                     <Button 
                         x:Name="ShowToast"
                         Content="Show" 
                         Height="20" 
                         Width="50" 
                         Click="Show_OnClick"/>
+                    <Button
+                        x:Name="ShowToastThreaded"
+                        Margin="10"
+                        Content="Show Threaded"
+                        Height="20"
+                        Width="95"
+                        Click="ShowToastThreaded_OnClick"/>
                 </StackPanel>
             </Grid>
         </Border>
